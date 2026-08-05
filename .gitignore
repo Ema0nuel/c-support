@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# CLAUDE & AI INSTRUCTION FILES
+CLAUDE.md*
+AGENTS.md*
+PRODUCT.md*
+DESIGN.md*
+CONTEXT.md*
+GUARDRAIL-POLICY.md*
+BUILD-GUIDE.md*
+.impeccable/
