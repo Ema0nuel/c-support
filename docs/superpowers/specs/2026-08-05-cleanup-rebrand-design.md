@@ -183,7 +183,7 @@ Location: Project root (`README.md`)
 
 Sections:
 1. Project name + description
-2. Thesis title and university
+2. Thesis title
 3. Tech stack (table format)
 4. Quick start commands
 5. Directory structure
