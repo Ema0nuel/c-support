@@ -1,26 +1,94 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   C-Support Design Tokens
+   ============================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  /* Background & Foreground */
+  --background: #F9FAFB;
+  --foreground: #111827;
+
+  /* Primary (Teal) */
+  --primary: #024B41;
+  --primary-foreground: #FFFFFF;
+
+  /* Accent (Lime) */
+  --accent: #B8DE72;
+  --accent-foreground: #024B41;
+
+  /* Muted */
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
+
+  /* Border & Ring */
+  --border: #E5E7EB;
+  --ring: #024B41;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #024B41;
+    --foreground: #FFFFFF;
+
+    --primary: #B8DE72;
+    --primary-foreground: #024B41;
+
+    --accent: #024B41;
+    --accent-foreground: #FFFFFF;
+
+    --muted: #1A3C37;
+    --muted-foreground: #9CA3AF;
+
+    --border: #1A3C37;
+    --ring: #B8DE72;
   }
 }
+
+/* ============================================
+   Tailwind v4 Theme Integration
+   ============================================ */
+
+@theme inline {
+  /* Semantic tokens → Tailwind utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  /* Extended palette — direct values */
+  --color-teal-50: #F0FDF9;
+  --color-teal-100: #CCFBF1;
+  --color-teal-600: #0D9488;
+  --color-teal-800: #115E59;
+  --color-teal-950: #024B41;
+  --color-lime-100: #ECFCCB;
+  --color-lime-400: #B8DE72;
+  --color-lime-500: #A3E635;
+  --color-lime-600: #65A30D;
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-900: #111827;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
