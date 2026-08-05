@@ -92,3 +92,258 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* ============================================
+   Easing Curves
+   ============================================
+   Emil Kowalski: "The built-in CSS easings are too weak.
+   They lack the punch that makes animations feel intentional." */
+
+:root {
+  /* Strong ease-out — fast entry, confident deceleration. For UI interactions. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Strong ease-in-out — natural acceleration/deceleration. For on-screen movement. */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Drawer curve (Ionic Framework) — for slides, drawers, sheets. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Durations — Emil's recommended ranges */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ============================================
+   Animation Utilities
+   ============================================ */
+
+/* Button press — tactile feedback on click.
+   Emil: "Add transform: scale(0.97) on :active. This gives instant feedback." */
+.btn-press {
+  transition: transform var(--duration-fast) var(--ease-out);
+  will-change: transform;
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Hover lift — subtle elevation on hover.
+   Only applies on devices with fine pointer (no false positives on touch). */
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift {
+    transition: transform var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ============================================
+   Custom Scrollbars
+   ============================================
+   Thin, rounded scrollbars themed to the C-Support
+   palette. Applies to the page itself AND to every
+   scrollable input/textarea/container so the whole
+   experience feels consistent.
+
+   WebKit (Chrome / Safari / Edge): ::-webkit-scrollbar
+   Firefox: scrollbar-width + scrollbar-color
+   ============================================ */
+
+/* ── Page scrollbar ──────────────────────────
+   Subtle by default, fills with primary teal on hover. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+html::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ── Scrollable inputs, textareas & containers ──
+   Narrower track, pill-shaped thumb, primary teal on hover. */
+.onboarding-scroll,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input[type="number"],
+select {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.onboarding-scroll::-webkit-scrollbar,
+textarea::-webkit-scrollbar,
+input[type="text"]::-webkit-scrollbar,
+input[type="email"]::-webkit-scrollbar,
+input[type="search"]::-webkit-scrollbar,
+input[type="number"]::-webkit-scrollbar,
+select::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.onboarding-scroll::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track,
+input[type="text"]::-webkit-scrollbar-track,
+input[type="email"]::-webkit-scrollbar-track,
+input[type="search"]::-webkit-scrollbar-track,
+input[type="number"]::-webkit-scrollbar-track,
+select::-webkit-scrollbar-track {
+  background: transparent;
+}
+.onboarding-scroll::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb,
+input[type="text"]::-webkit-scrollbar-thumb,
+input[type="email"]::-webkit-scrollbar-thumb,
+input[type="search"]::-webkit-scrollbar-thumb,
+input[type="number"]::-webkit-scrollbar-thumb,
+select::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted-foreground) 35%, transparent);
+  border-radius: 9999px;
+}
+.onboarding-scroll::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover,
+input[type="text"]::-webkit-scrollbar-thumb:hover,
+input[type="email"]::-webkit-scrollbar-thumb:hover,
+input[type="search"]::-webkit-scrollbar-thumb:hover,
+input[type="number"]::-webkit-scrollbar-thumb:hover,
+select::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Onboarding scroll container */
+.onboarding-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   CSS Keyframe Animations
+   ============================================
+   Emil: "CSS animations run off the main thread.
+   When the browser is busy loading a new page, Framer Motion
+   animations (using requestAnimationFrame) drop frames.
+   CSS animations remain smooth." */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Utility classes for CSS animations */
+.animate-spin-css {
+  animation: spin 0.8s linear infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.5s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-out) both;
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-slow) var(--ease-out) both;
+}
+
+/* Stagger children — used with inline style for delay */
+.stagger-children > * {
+  animation: slide-up var(--duration-slow) var(--ease-out) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+/* ============================================
+   Focus Visible Ring
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  transition: outline-offset var(--duration-fast) var(--ease-out);
+}
+
+/* ============================================
+   Selection Color
+   ============================================ */
+
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================
+   Emil: "Reduced motion means fewer and gentler animations, not zero.
+   Keep opacity and color transitions that aid comprehension.
+   Remove movement and position animations." */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep opacity transitions for comprehension */
+  .btn-press:active {
+    transform: none;
+  }
+
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  /* Keep focus ring — it's not decorative */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}

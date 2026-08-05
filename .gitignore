@@ -42,10 +42,16 @@ next-env.d.ts
 
 
 # CLAUDE & AI INSTRUCTION FILES
-CLAUDE.md*
-AGENTS.md*
-PRODUCT.md*
-CONTEXT.md*
+CLAUDE.md
+AGENTS.md
+PRODUCT.md
+CONTEXT.md
 GUARDRAIL-POLICY.md*
 BUILD-GUIDE.md*
 .impeccable/
+/docs/**
+.claude/**
+.agents/**
+.superpowers/**
+DESIGN.md
+skills-lock.json
