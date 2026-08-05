@@ -1,48 +1,44 @@
 @import "tailwindcss";
 
+/* The app always renders the dark teal/lime world. Any `dark:` variant is
+   forced on via the `.dark` class on <html>, so it never flips with the OS. */
+@custom-variant dark (&:is(.dark *));
+
 /* ============================================
    C-Support Design Tokens
    ============================================ */
 
 :root {
-  /* Background & Foreground */
-  --background: #F9FAFB;
-  --foreground: #111827;
+  /* Background & Foreground — always the dark teal world */
+  --background: #024B41;
+  --foreground: #FFFFFF;
 
-  /* Primary (Teal) */
-  --primary: #024B41;
-  --primary-foreground: #FFFFFF;
+  /* Card surfaces — a subtle teal lift above the background */
+  --card: #0B5046;
+  --card-foreground: #FFFFFF;
 
-  /* Accent (Lime) */
-  --accent: #B8DE72;
-  --accent-foreground: #024B41;
+  /* Primary (Lime) */
+  --primary: #B8DE72;
+  --primary-foreground: #024B41;
 
-  /* Muted */
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
+  /* Secondary & Muted */
+  --secondary: #1A3C37;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A3C37;
+  --muted-foreground: #A9C3BC;
 
-  /* Border & Ring */
-  --border: #E5E7EB;
-  --ring: #024B41;
-}
+  /* Accent — a lighter teal so hovers read on the background */
+  --accent: #0E5147;
+  --accent-foreground: #FFFFFF;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #024B41;
-    --foreground: #FFFFFF;
+  /* Border, Input & Ring */
+  --border: #176055;
+  --input: #176055;
+  --ring: #B8DE72;
 
-    --primary: #B8DE72;
-    --primary-foreground: #024B41;
-
-    --accent: #024B41;
-    --accent-foreground: #FFFFFF;
-
-    --muted: #1A3C37;
-    --muted-foreground: #9CA3AF;
-
-    --border: #1A3C37;
-    --ring: #B8DE72;
-  }
+  /* Destructive */
+  --destructive: #F87171;
+  --destructive-foreground: #FFFFFF;
 }
 
 /* ============================================
@@ -61,6 +57,13 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-input: var(--input);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
   /* Extended palette — direct values */
   --color-teal-50: #F0FDF9;
@@ -268,6 +271,11 @@ select::-webkit-scrollbar-thumb:hover {
   100% { background-position: 200% 0; }
 }
 
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+
 /* Utility classes for CSS animations */
 .animate-spin-css {
   animation: spin 0.8s linear infinite;
@@ -283,6 +291,23 @@ select::-webkit-scrollbar-thumb:hover {
 
 .animate-slide-up {
   animation: slide-up var(--duration-slow) var(--ease-out) both;
+}
+
+/* Typing indicator — three dots that bob in sequence while the agent
+   "thinks". Pure CSS so it runs off the main thread. */
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--muted-foreground);
+  animation: typing-bounce 1.2s ease-in-out infinite;
+}
+
+/* Loader — ring spinner used by hydration gates. */
+.cs-loader {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
 }
 
 /* Stagger children — used with inline style for delay */
@@ -346,4 +371,25 @@ select::-webkit-scrollbar-thumb:hover {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+}
+
+/* ============================================
+   Sandbox Chat Preview
+   ============================================
+   Thinner scrollbar for the mini chat preview
+   in step-review's control room layout. */
+
+.sandbox-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.sandbox-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.sandbox-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sandbox-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+  border-radius: 9999px;
 }

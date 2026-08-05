@@ -12,7 +12,7 @@ import Link from "next/link";
  */
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 dark:bg-teal-950">
+    <div className="flex flex-1 flex-col items-center justify-center bg-teal-950 px-6">
       <main className="flex flex-col items-center text-center">
         {/* Logo Mark — entrance with staggered delay via animation-delay */}
         <div
@@ -39,7 +39,7 @@ export default function Home() {
 
         {/* Title — staggered entrance */}
         <h1
-          className="animate-slide-up text-4xl font-semibold tracking-tight text-gray-900 dark:text-white"
+          className="animate-slide-up text-4xl font-semibold tracking-tight text-white"
           style={{ animationDelay: "80ms" }}
         >
           C-Support
@@ -47,7 +47,7 @@ export default function Home() {
 
         {/* Tagline — staggered entrance */}
         <p
-          className="animate-slide-up mt-2 text-lg text-gray-500 dark:text-teal-100"
+          className="animate-slide-up mt-2 text-lg text-teal-100"
           style={{ animationDelay: "140ms" }}
         >
           AI-Powered Customer Support System
@@ -57,7 +57,7 @@ export default function Home() {
             Tactile press via .btn-press. Hover lift on fine pointer. */}
         <Link
           href="/onboarding"
-          className="btn-press hover-lift mt-8 inline-flex items-center rounded-lg bg-lime-400 px-8 py-3 font-medium text-teal-950 transition-colors duration-150 hover:bg-lime-500 dark:bg-lime-400 dark:hover:bg-lime-500"
+          className="btn-press hover-lift mt-8 inline-flex items-center rounded-lg bg-lime-400 px-8 py-3 font-medium text-teal-950 transition-colors duration-150 hover:bg-lime-500"
         >
           Get Started
         </Link>
@@ -66,7 +66,7 @@ export default function Home() {
       {/* Footer — mt-auto keeps it at bottom without absolute positioning.
           Impeccable: "absolute bottom-8 breaks on short viewports and mobile." */}
       <footer className="mt-auto pb-8 pt-16">
-        <p className="text-sm text-gray-400 dark:text-teal-600">
+        <p className="text-sm text-teal-600">
           C-Support
         </p>
       </footer>

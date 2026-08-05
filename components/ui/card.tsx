@@ -16,13 +16,10 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border border-border bg-white p-6 shadow-sm",
-      // Dark mode support
-      "dark:bg-teal-950/50 dark:border-teal-800",
+      "rounded-lg border border-border bg-card p-6 shadow-sm",
       // Emil hover: only on devices with fine pointer
       "transition-[box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]",
       "hover:shadow-md",
-      "dark:hover:shadow-teal-950/30",
       className
     )}
     {...props}

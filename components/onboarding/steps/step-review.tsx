@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { ReviewIcon } from "../step-icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +12,12 @@ import { useOnboardingStore, TOTAL_STEPS } from "@/store/onboarding";
  * Onboarding Step 5 — Review
  *
  * Displays a summary of all entered data for final confirmation.
- * On "Launch", marks onboarding complete and redirects to /.
+ * On "Continue", marks onboarding complete and redirects to the
+ * agent customization flow (/customize).
  */
 export function StepReview() {
+  const router = useRouter();
+
   const {
     businessName,
     businessNiche,
@@ -30,7 +34,7 @@ export function StepReview() {
 
   const handleLaunch = () => {
     markComplete();
-    window.location.href = "/";
+    router.push("/customize");
   };
 
   const handleEditStep = (step: number) => {
@@ -68,7 +72,7 @@ export function StepReview() {
           transition={{ delay: 0.2, duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
           className="mb-8 text-sm text-muted-foreground"
         >
-          Everything looks good? Launch your AI support agent.
+          Everything looks good? Next, let&apos;s customize your AI support agent.
         </motion.p>
 
         {/* Summary cards */}
@@ -231,7 +235,7 @@ export function StepReview() {
           onClick={handleLaunch}
           className="flex-[2]"
         >
-          Launch AI Agent
+          Continue
         </Button>
       </motion.div>
     </div>
