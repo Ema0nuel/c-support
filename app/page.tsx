@@ -44,7 +44,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="absolute bottom-8">
         <p className="text-sm text-gray-400 dark:text-teal-600">
-          University of Port Harcourt
+          C-Support
         </p>
       </footer>
     </div>

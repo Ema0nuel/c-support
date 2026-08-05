@@ -4,7 +4,6 @@
 
 > **Purpose:** AI-powered customer support system — BSc thesis project.
 > **Thesis:** "Reconstruction and Fine-Tuning of the DeepSeek Large Language Model for Artificial Intelligence-Powered Customer Support"
-> **University:** University of Port Harcourt, Faculty of Computing, Computer Science
 > **Status:** Fresh scaffold — development starting.
 
 ---
