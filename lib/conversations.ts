@@ -6,6 +6,8 @@
  * but uses localStorage for the working demo.
  */
 
+import { classifyIntent } from "./intent-classifier";
+
 const STORAGE_KEY = "c-support-conversations";
 
 // ─── Types ───────────────────────────────────────
@@ -164,4 +166,17 @@ export function getConversationStats(): {
         ? Math.round((totalResponseTime / responseCount / 1000) * 10) / 10
         : 1.2, // default placeholder
   };
+}
+
+export function getConversationIntents(conversation: LocalConversation): string[] {
+  const intents = new Set<string>();
+  for (const msg of conversation.messages) {
+    if (msg.role === "user") {
+      const classified = classifyIntent(msg.content);
+      if (classified.intent !== "unclear" && classified.intent !== "greeting") {
+        intents.add(classified.intent);
+      }
+    }
+  }
+  return Array.from(intents).slice(0, 3);
 }
