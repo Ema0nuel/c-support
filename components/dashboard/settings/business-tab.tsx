@@ -91,7 +91,7 @@ export function BusinessTab() {
 
         {/* Custom input for "Other" */}
         <div
-          className="mt-3 grid transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          className="mt-3 grid transition-[grid-template-rows,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
           style={{
             gridTemplateRows: businessNiche === "Other" ? "1fr" : "0fr",
             opacity: businessNiche === "Other" ? 1 : 0,

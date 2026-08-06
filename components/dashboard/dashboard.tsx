@@ -10,13 +10,12 @@ import { DashboardAgent } from "./dashboard-agent";
 import { DashboardActivity } from "./dashboard-activity";
 import { type DashboardTab } from "./dashboard-sidebar";
 import { ConversationsView } from "@/components/conversations/conversations-view";
-import { SettingsPanel } from "@/components/dashboard/settings/settings-panel";
 
 /**
  * C-Support — Dashboard
  *
  * Full dashboard with glass sidebar (desktop) / bottom island navbar (mobile).
- * Three tabs: Dashboard, Conversations, Settings.
+ * Two tabs: Dashboard, Conversations. Settings routes to /settings.
  */
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("dashboard");
@@ -39,7 +38,6 @@ export function Dashboard() {
     <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
       {activeTab === "dashboard" && <DashboardView />}
       {activeTab === "conversations" && <ConversationsView />}
-      {activeTab === "settings" && <SettingsPanel />}
     </DashboardLayout>
   );
 }

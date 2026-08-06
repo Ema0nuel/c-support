@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { CSupportMark, AgentAvatar } from "@/components/customize/agent-icons";
 import {
@@ -11,7 +12,7 @@ import {
 
 // ─── Types ──────────────────────────────────────────
 
-export type DashboardTab = "dashboard" | "conversations" | "settings";
+export type DashboardTab = "dashboard" | "conversations";
 
 interface DashboardSidebarProps {
   activeTab: DashboardTab;
@@ -29,7 +30,6 @@ const NAV_ITEMS: {
 }[] = [
   { id: "dashboard", label: "Dashboard", mobileLabel: "Dash", Icon: DashboardIcon },
   { id: "conversations", label: "Conversations", mobileLabel: "Chats", Icon: ConversationsIcon },
-  { id: "settings", label: "Settings", mobileLabel: "Settings", Icon: SettingsIcon },
 ];
 
 // ═══════════════════════════════════════════════════
@@ -90,6 +90,20 @@ function DesktopSidebar({
 
         {/* Spacer */}
         <div className="flex-1" />
+
+        {/* Settings link */}
+        <Link
+          href="/settings"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium",
+            "transition-colors duration-200",
+            "hover:bg-white/5",
+            "text-[#A9C3BC]/50 hover:text-[#A9C3BC]/70"
+          )}
+        >
+          <SettingsIcon className="h-[18px] w-[18px] shrink-0" />
+          <span>Settings</span>
+        </Link>
 
         {/* Glass divider */}
         <div
@@ -181,6 +195,15 @@ function MobileIsland({
           </button>
         );
       })}
+
+      {/* Settings — routes to /settings */}
+      <Link
+        href="/settings"
+        className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-full text-[10px] font-medium text-[#A9C3BC]/50"
+      >
+        <SettingsIcon className="h-[18px] w-[18px] relative z-10" />
+        <span className="relative z-10">Settings</span>
+      </Link>
     </nav>
   );
 }

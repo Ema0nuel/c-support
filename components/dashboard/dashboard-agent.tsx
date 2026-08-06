@@ -92,7 +92,7 @@ export function DashboardAgent() {
           Agent Configuration
         </span>
         <Link
-          href="/customize/name"
+          href="/settings"
           className={cn(
             "text-[12px] font-medium text-[#B8DE72]/70",
             "hover:text-[#B8DE72] transition-colors duration-200"

@@ -28,6 +28,8 @@ export interface ConversationContext {
   lastUserMessage?: string;
   lastAssistantMessage?: string;
   topicHistory: Intent[]; // intents from previous turns
+  isFollowUp?: boolean; // true when classifier detected a follow-up message
+  priorIntent?: Intent; // the intent from the turn before this one
 }
 
 export type PersonalityId = "professional" | "friendly" | "concise" | "empathetic";
@@ -575,6 +577,85 @@ const RESPONSE_TEMPLATES: ResponseTemplate[] = [
   },
 ];
 
+// ── Continuation Response Templates ────────────────
+// Used when the classifier detects a follow-up message (isFollowUp: true).
+// These templates reference the prior conversation instead of starting fresh.
+
+interface ContinuationTemplate {
+  intent: Intent;
+  responses: ResponseTemplate["responses"];
+}
+
+const CONTINUATION_TEMPLATES: ContinuationTemplate[] = [
+  // ── Signup follow-up (e.g., after login discussion) ──
+  {
+    intent: "account_signup",
+    responses: {
+      neutral: [
+        "Thanks for clarifying! So you're having trouble **signing up** rather than logging in — got it. Let me walk you through the signup process:\n\n1. Visit the website and click **\"Sign Up\"** or **\"Create Account\"**\n2. Enter your email and create a password (min. 8 characters with one number)\n3. Check your inbox for a verification email and click the link\n\n{policy}\n\nWhich step are you running into trouble with?",
+        "Ah, I understand — it's a **signup** issue, not a login issue. Here's how to create your account:\n\n1. Go to our website and find the **\"Sign Up\"** button\n2. Enter your email and choose a secure password\n3. Verify your email via the link we send you\n\n{policy}\n\nWhat happens when you try to sign up? Any error messages?",
+      ],
+      frustrated: [
+        "I understand — you're stuck on the signup step, not login. Let me help you get past this:\n\n1. Make sure your email is entered correctly (no typos)\n2. Password needs at least 8 characters and one number\n3. Try clearing your browser cache or using a different browser\n4. Check your spam folder for the verification email\n\n{policy}\n\nIf you're still stuck, please share what error message you're seeing and I'll pinpoint the issue.",
+      ],
+      angry: [
+        "I hear you — signup issues are really frustrating. Let me help you get this sorted right away.\n\nPlease try:\n1. A different browser (Chrome, Firefox, or Safari)\n2. Clearing your browser cache and cookies\n3. Checking your spam folder for the verification email\n\n{policy}\n\nIf none of this works, I'll escalate this to our technical team immediately. What error are you seeing?",
+      ],
+      confused: [
+        "No worries, let me clarify! You mentioned signup — here's the step-by-step:\n\n1. On the website, click **\"Sign Up\"** or **\"Create Account\"**\n2. Enter your email and create a password\n3. Check your email for a verification link and click it\n\n{policy}\n\nWhich step is giving you trouble? I can walk you through it.",
+      ],
+      urgent: [
+        "Got it — this is a signup issue. Let me help you get registered right away.\n\nThe fastest path: go to the website, click **\"Sign Up\"**, enter your email and password, then verify via the email we send.\n\n{policy}\n\nIf you need immediate help, I can escalate this to our team.",
+      ],
+    },
+  },
+
+  // ── Login follow-up (e.g., after signup discussion) ──
+  {
+    intent: "account_login",
+    responses: {
+      neutral: [
+        "I understand — you're having trouble **logging in**. Here are the steps to get back into your account:\n\n1. Go to the login page and click **\"Forgot Password\"**\n2. Enter your registered email address\n3. Check your inbox for the password reset link\n4. Create a new password and log in\n\n{policy}\n\nIf you're still having trouble, let me know what error message you're seeing.",
+        "Thanks for the clarification — so it's a **login** issue. Let's get you back in:\n\n• Make sure Caps Lock is off and you're using the correct email\n• Use the **\"Forgot Password\"** link to reset your password\n• Clear your browser cookies and try again\n\n{policy}\n\nWhich of these applies to your situation?",
+      ],
+      frustrated: [
+        "I understand login issues are frustrating — especially when you just need to get in. Let's fix this quickly:\n\n1. Click **\"Forgot Password\"** on the login page\n2. Check your email (including spam) for the reset link\n3. Create a new password and try logging in again\n\n{policy}\n\nIf the reset email doesn't arrive, there may be an issue with the email on file. Let me know and I'll look into it.",
+      ],
+      angry: [
+        "I'm sorry you're locked out — I know how aggravating that is. Let's get you back in right now.\n\nPlease try the **\"Forgot Password\"** option on the login page. If the reset email doesn't arrive within a few minutes, check your spam folder.\n\n{policy}\n\nIf this still doesn't work, I'll escalate to our team immediately.",
+      ],
+      confused: [
+        "No problem, let me help you get logged in:\n\n1. On the login page, enter your email address\n2. If you've forgotten your password, click **\"Forgot Password\"**\n3. Check your email and follow the reset instructions\n\n{policy}\n\nIf you're not sure which email you used, let me know and I can help figure it out.",
+      ],
+      urgent: [
+        "Let me help you get back into your account quickly.\n\nUse the **\"Forgot Password\"** link on the login page — you'll receive a reset email within minutes. If you don't see it, check your spam folder.\n\n{policy}\n\nIf this is time-critical, I can escalate for immediate support.",
+      ],
+    },
+  },
+
+  // ── Password follow-up ──
+  {
+    intent: "account_password",
+    responses: {
+      neutral: [
+        "Got it — you need help with your **password**. Here's what to do:\n\n1. Go to the login page and click **\"Forgot Password\"**\n2. Enter the email address associated with your account\n3. Check your inbox for the reset link\n4. Create a new, secure password\n\n{policy}\n\nLet me know if you don't receive the reset email or run into any issues.",
+      ],
+      frustrated: [
+        "I understand password issues are frustrating. Let's get this resolved:\n\n1. Click **\"Forgot Password\"** on the login page\n2. Enter your email and check both your inbox and spam folder\n3. Follow the link to create a new password\n\n{policy}\n\nIf the reset email doesn't arrive, there may be an issue with the email on file.",
+      ],
+      angry: [
+        "I'm sorry about the password trouble. Let me help you reset it right away.\n\nGo to the login page, click **\"Forgot Password\"**, and check your email (including spam) for the reset link.\n\n{policy}\n\nIf this doesn't work, I'll escalate to our technical team immediately.",
+      ],
+      confused: [
+        "No worries! Here's how to reset your password:\n\n1. Go to the login page\n2. Click **\"Forgot Password\"**\n3. Enter your email address\n4. Check your inbox for the reset link and follow it\n\n{policy}\n\nLet me know if you need help with any of these steps.",
+      ],
+      urgent: [
+        "I'll help you reset your password right now. Go to the login page, click **\"Forgot Password\"**, and check your email for the reset link.\n\n{policy}\n\nIf you don't receive it within a few minutes, I'll escalate this immediately.",
+      ],
+    },
+  },
+];
+
 // ── Sentiment → key mapping ───────────────────────
 
 function getSentimentKey(sentiment: Sentiment): keyof ResponseTemplate["responses"] {
@@ -652,7 +733,18 @@ export function generateResponse(
   }
 
   // ── 2. Get sentiment-appropriate response pool ──
+  // If this is a follow-up message, prefer continuation templates that
+  // reference the prior conversation instead of generic first-contact replies.
   let pool = template.responses[sentimentKey];
+
+  if (conversationContext?.isFollowUp) {
+    const continuationTemplate = CONTINUATION_TEMPLATES.find(
+      (t) => t.intent === classified.intent
+    );
+    if (continuationTemplate) {
+      pool = continuationTemplate.responses[sentimentKey] || continuationTemplate.responses.neutral;
+    }
+  }
 
   // Fall back to neutral if specific sentiment pool is empty
   if (!pool || pool.length === 0) {

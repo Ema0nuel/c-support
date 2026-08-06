@@ -17,7 +17,6 @@ interface DashboardLayoutProps {
 const TAB_SUBTITLES: Record<DashboardTab, string> = {
   dashboard: "Monitor your agent",
   conversations: "View recent conversations",
-  settings: "Manage agent settings",
 };
 
 // ═══════════════════════════════════════════════════

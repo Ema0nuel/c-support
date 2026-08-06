@@ -140,6 +140,10 @@ export function ChatInterface() {
           .filter((m) => m.role === "assistant")
           .at(-1)?.content,
         topicHistory: topicHistory.current,
+        isFollowUp: classified.isFollowUp,
+        priorIntent: topicHistory.current.length > 0
+          ? topicHistory.current[topicHistory.current.length - 1]
+          : undefined,
       };
 
       const delay = 1200 + Math.random() * 600;

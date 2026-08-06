@@ -50,6 +50,7 @@ export interface ClassifiedIntent {
   confidence: number; // 0–1
   keywords: string[]; // matched keywords for debugging
   patterns: string[]; // matched patterns (e.g., "order_number:#5585943")
+  isFollowUp: boolean; // true when message appears to be a follow-up to a prior topic
 }
 
 interface IntentRule {
@@ -377,6 +378,80 @@ const EMAIL_PATTERN = /\b[\w.-]+@[\w.-]+\.\w{2,}\b/;
 
 const PHONE_PATTERN = /\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/;
 
+// ── Follow-Up / Continuation Detection ────────────
+// Conversational fillers that signal the user is continuing a prior topic
+// rather than initiating a brand-new request.
+const CONTINUATION_FILLERS = [
+  "oh i see",
+  "oh okay",
+  "oh ok",
+  "oh right",
+  "oh that makes sense",
+  "i see why",
+  "i see",
+  "got it",
+  "alright",
+  "so basically",
+  "so then",
+  "so what about",
+  "what about",
+  "and what about",
+  "how about",
+  "also",
+  "but what about",
+  "but how",
+  "wait",
+  "actually",
+  "hmm",
+  "ok so",
+  "okay so",
+  "right so",
+  "so",
+];
+
+// Sentences that explicitly reference the conversation ("you just said", etc.)
+const EXPLICIT_FOLLOWUP_PHRASES = [
+  "you just said",
+  "you said",
+  "you mentioned",
+  "earlier you",
+  "before you said",
+  "going back to",
+  "regarding what you",
+  "about what you",
+  "related to that",
+  "instead of that",
+  "but i actually",
+  "actually i meant",
+  "i meant to say",
+  "i was actually",
+];
+
+function isFollowUpMessage(
+  msg: string,
+  conversationHistory?: Array<{ role: string; content: string }>
+): boolean {
+  if (!conversationHistory || conversationHistory.length === 0) return false;
+
+  // Must have at least one prior assistant response to be a follow-up
+  const hasAssistantHistory = conversationHistory.some((m) => m.role === "assistant");
+  if (!hasAssistantHistory) return false;
+
+  // Check for explicit follow-up references
+  for (const phrase of EXPLICIT_FOLLOWUP_PHRASES) {
+    if (msg.includes(phrase)) return true;
+  }
+
+  // Check for conversational fillers
+  for (const filler of CONTINUATION_FILLERS) {
+    if (msg.startsWith(filler) || msg.includes(filler + " ")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // ── Levenshtein Distance ──────────────────────────
 
 function levenshtein(a: string, b: string): number {
@@ -587,12 +662,15 @@ export function classifyIntent(
     const confidence = Math.min(bestMatch.score / 6, 1.0);
     keywords.push(...bestMatch.matchedKeywords);
 
+    const followUp = isFollowUpMessage(msg, conversationHistory);
+
     return {
       intent: bestMatch.intent,
       sentiment,
       confidence,
       keywords,
       patterns,
+      isFollowUp: followUp,
     };
   }
 
@@ -604,6 +682,7 @@ export function classifyIntent(
       confidence: 0.8,
       keywords: ["order_number_detected"],
       patterns,
+      isFollowUp: isFollowUpMessage(msg, conversationHistory),
     };
   }
 
@@ -614,5 +693,6 @@ export function classifyIntent(
     confidence: 0.2,
     keywords,
     patterns,
+    isFollowUp: isFollowUpMessage(msg, conversationHistory),
   };
 }
