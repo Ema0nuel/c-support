@@ -40,6 +40,11 @@ export function buildAnalysisPrompt(params: {
 }): Message[] {
   const { policies, businessName, businessNiche, categories } = params;
 
+  // Build the category instruction based on whether categories are provided
+  const categoryInstruction = categories.length > 0
+    ? `Available categories from the training dataset:\n${categories.join(", ")}\n\nRules:\n- matchedCategories: Select ONLY categories that directly relate to the provided policies. Use the exact category names from the list above.`
+    : `Rules:\n- matchedCategories: Detect ALL relevant categories from the policies. Use clear, descriptive names (e.g., "Refund Policy", "Shipping Times", "Warranty Coverage"). Do NOT limit yourself to any predefined list — extract every category the business covers.`;
+
   const systemPrompt = `You are a knowledge base analyst for a customer support system. Your task is to analyze a business's policies and create a structured knowledge base profile.
 
 You must respond with ONLY valid JSON (no markdown, no code fences, no explanation). The JSON must match this exact schema:
@@ -53,11 +58,8 @@ You must respond with ONLY valid JSON (no markdown, no code fences, no explanati
   ]
 }
 
-Available categories from the training dataset:
-${categories.join(", ")}
+${categoryInstruction}
 
-Rules:
-- matchedCategories: Select ONLY categories that directly relate to the provided policies. Use the exact category names from the list above.
 - systemPrompt: Write a concise system prompt (2-3 sentences) that instructs an AI agent how to behave as a customer support agent for this specific business. Include the business name and niche.
 - summary: Write a 1-2 sentence summary of what the policies cover.
 - suggestedPolicies: Extract each distinct policy as a category + description pair. One entry per policy topic.`;

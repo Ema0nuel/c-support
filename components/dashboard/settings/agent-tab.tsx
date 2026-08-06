@@ -9,7 +9,6 @@ import { ResetSection } from "./reset-section";
 import { useAgentStore } from "@/store/agent";
 import { useOnboardingStore } from "@/store/onboarding";
 import { DEFAULT_SCOPE } from "@/lib/agent";
-import { Button } from "@/components/ui/button";
 
 /**
  * C-Support — Agent Tab
@@ -28,7 +27,6 @@ export function AgentTab() {
   const handoffMessage = useAgentStore((s) => s.handoffMessage);
   const updateField = useAgentStore((s) => s.updateField);
   const setEnabledCategories = useAgentStore((s) => s.setEnabledCategories);
-  const reset = useAgentStore((s) => s.reset);
 
   const businessName = useOnboardingStore((s) => s.businessName);
 
@@ -37,21 +35,6 @@ export function AgentTab() {
     aiAnalysis?.matchedCategories && aiAnalysis.matchedCategories.length > 0
       ? aiAnalysis.matchedCategories
       : DEFAULT_SCOPE;
-
-  const handleReset = () => {
-    if (
-      !window.confirm(
-        "This will reset your agent's personality, greeting, and handoff to defaults. Your name and avatar will be kept. Continue?"
-      )
-    ) {
-      return;
-    }
-    const keepName = agentName;
-    const keepAvatar = avatarId;
-    reset();
-    updateField("agentName", keepName);
-    updateField("avatarId", keepAvatar);
-  };
 
   return (
     <motion.div
@@ -112,13 +95,6 @@ export function AgentTab() {
         maxLength={300}
         showCount
       />
-
-      {/* Reset to defaults (agent only) */}
-      <div className="pt-2">
-        <Button variant="ghost" size="sm" onClick={handleReset} className="text-destructive/70 hover:text-destructive hover:bg-destructive/10">
-          Reset agent to defaults
-        </Button>
-      </div>
 
       {/* Full data reset */}
       <ResetSection />

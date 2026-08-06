@@ -2,44 +2,17 @@ import { NextRequest } from "next/server";
 import { callLLM, buildAnalysisPrompt, type Message } from "@/lib/chat";
 
 /**
- * Training dataset categories — must match policy/dataset_metadata.json exactly.
- * These are the 33 categories the AI uses to classify business policies.
+ * C-Support — Onboarding Policy Analysis
+ *
+ * Analyzes business policies and extracts:
+ * - Categories (auto-detected, NO hardcoded whitelist)
+ * - Structured policy entries
+ * - Auto-generated system prompt
+ * - Summary
+ *
+ * The LLM detects ALL relevant categories from the policies.
+ * Categories are stored as-is — no filtering against a predefined list.
  */
-const TRAINING_CATEGORIES = [
-  "PAYMENT",
-  "TECHNICAL SUPPORT",
-  "ACCOUNT",
-  "DELIVERY",
-  "SHIPPING",
-  "RETURNS",
-  "REFUND",
-  "ORDER",
-  "PRODUCT",
-  "BILLING",
-  "INVOICE",
-  "WARRANTY",
-  "COMPLAINT",
-  "FEEDBACK",
-  "CANCELLATION",
-  "SUBSCRIPTION",
-  "PRIVACY",
-  "SECURITY",
-  "FRAUD",
-  "LEGAL",
-  "GENERIC",
-  "HUMAN AGENT",
-  "APPOINTMENT",
-  "PROMOTION",
-  "DISCOUNT",
-  "LOYALTY",
-  "INSURANCE",
-  "CLAIMS",
-  "COMPLIANCE",
-  "DATA REQUEST",
-  "ACCOUNT CLOSURE",
-  "SERVICE DOWNTIME",
-  "CUSTOMER SATISFACTION",
-];
 
 interface AnalyzeRequest {
   policies: string;
@@ -75,11 +48,13 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── Build prompt ───────────────────────────────
+    // The prompt now asks the LLM to detect ALL relevant categories
+    // without constraining to a predefined list.
     const messages: Message[] = buildAnalysisPrompt({
       policies: policies.trim(),
       businessName: businessName.trim(),
       businessNiche: businessNiche.trim(),
-      categories: TRAINING_CATEGORIES,
+      categories: [], // Empty — no hardcoded whitelist
     });
 
     // ─── Call LLM ───────────────────────────────────
@@ -109,10 +84,11 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── Normalize & validate ───────────────────────
+    // Accept ALL categories returned by the LLM — no hardcoded filtering
     const matchedCategories = Array.isArray(parsed.matchedCategories)
-      ? (parsed.matchedCategories as string[]).filter((c) =>
-          TRAINING_CATEGORIES.includes(c)
-        )
+      ? (parsed.matchedCategories as string[])
+          .filter((c) => typeof c === "string" && c.trim().length > 0)
+          .slice(0, 30) // Cap at 30 categories
       : [];
 
     const suggestedPolicies = Array.isArray(parsed.suggestedPolicies)

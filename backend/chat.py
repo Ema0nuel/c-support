@@ -334,14 +334,14 @@ async def process_chat_message(
     if not input_check.passed:
         # Guardrail blocked the input — log the user message + refusal
         await db.create_message(
-            conversation_id=conversation_id,
+            conversation_id=conversation_id, # pyright: ignore[reportArgumentType]
             customer_id=customer_id,
             content=message,
             role="user",
         )
         refusal = input_check.message or "Message blocked by guardrails."
         await db.create_message(
-            conversation_id=conversation_id,
+            conversation_id=conversation_id, # pyright: ignore[reportArgumentType]
             customer_id=customer_id,
             content=refusal,
             role="assistant",
@@ -385,13 +385,13 @@ async def process_chat_message(
 
     # Step 10: Save the exchange — user message + assistant message
     user_msg = await db.create_message(
-        conversation_id=conversation_id,
+        conversation_id=conversation_id, # pyright: ignore[reportArgumentType]
         customer_id=customer_id,
         content=message,
         role="user",
     )
     assistant_msg = await db.create_message(
-        conversation_id=conversation_id,
+        conversation_id=conversation_id, # pyright: ignore[reportArgumentType]
         customer_id=customer_id,
         content=bot_response_text,
         role="assistant",

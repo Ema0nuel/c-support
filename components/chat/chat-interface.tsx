@@ -6,9 +6,7 @@ import { useOnboardingStore } from "@/store/onboarding";
 import { useChatStore } from "@/store/chat";
 import { getDefaultGreeting } from "@/lib/agent";
 import { createConversation, addMessage } from "@/lib/conversations";
-import { classifyIntent } from "@/lib/intent-classifier";
-import { generateResponse, type BusinessContext, type ConversationContext } from "@/lib/response-engine";
-import type { Intent } from "@/lib/intent-classifier";
+import { processMessage, type MiddlewareInput, type MiddlewareOutput } from "@/lib/middleware";
 import { ChatHeader } from "./chat-header";
 import { ChatMessages } from "./chat-messages";
 import { ChatComposer } from "./chat-composer";
@@ -61,7 +59,7 @@ export function ChatInterface() {
   const greetingSent = useRef(false);
 
   // Track conversation topic history for context-aware responses
-  const topicHistory = useRef<Intent[]>([]);
+  // (now managed by the middleware pipeline's conversation state)
 
   // ── Greeting auto-send ───────────────────────────
   useEffect(() => {
@@ -117,53 +115,44 @@ export function ChatInterface() {
       // 3. Show typing indicator
       setLoading(true);
 
-      // 4. Classify intent + generate policy-aware response
+      // 4. Run middleware pipeline
       const currentMessages = useChatStore.getState().messages;
-      const recentHistory = currentMessages.slice(-6).map((m) => ({
-        role: m.role,
+      const conversationHistory = currentMessages.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
         content: m.content,
+        timestamp: m.timestamp,
       }));
 
-      const classified = classifyIntent(content, recentHistory);
-
-      const businessContext: BusinessContext = {
-        businessName,
-        businessNiche,
-        businessOrigin,
-        policiesInput,
-        suggestedPolicies: aiAnalysis?.suggestedPolicies,
+      const middlewareInput: MiddlewareInput = {
+        message: content,
+        conversationHistory,
+        businessContext: {
+          businessName,
+          businessNiche,
+          businessOrigin,
+          policiesInput,
+          suggestedPolicies: aiAnalysis?.suggestedPolicies,
+        },
+        agentConfig: {
+          personalityId,
+          enabledCategories: useAgentStore.getState().enabledCategories,
+          handoffMessage: useAgentStore.getState().handoffMessage,
+          agentName: useAgentStore.getState().agentName,
+        },
       };
 
-      const convContext: ConversationContext = {
-        lastUserMessage: content,
-        lastAssistantMessage: recentHistory
-          .filter((m) => m.role === "assistant")
-          .at(-1)?.content,
-        topicHistory: topicHistory.current,
-        isFollowUp: classified.isFollowUp,
-        priorIntent: topicHistory.current.length > 0
-          ? topicHistory.current[topicHistory.current.length - 1]
-          : undefined,
-      };
-
+      // Simulate realistic response time
       const delay = 1200 + Math.random() * 600;
       await new Promise((r) => setTimeout(r, delay));
 
-      const responseText = generateResponse(
-        classified,
-        businessContext,
-        personalityId as "professional" | "friendly" | "concise" | "empathetic",
-        convContext
+      const result: MiddlewareOutput = await processMessage(
+        middlewareInput,
+        activeConvoId
       );
 
-      // Track topic history for context
-      topicHistory.current.push(classified.intent);
-      if (topicHistory.current.length > 10) {
-        topicHistory.current = topicHistory.current.slice(-10);
-      }
-
       // 5. Add assistant message
-      addAssistantMessage(responseText);
+      addAssistantMessage(result.response);
       setLoading(false);
 
       // 6. Persist assistant message to localStorage
@@ -171,7 +160,7 @@ export function ChatInterface() {
       if (currentConvoId) {
         addMessage(currentConvoId, {
           role: "assistant",
-          content: responseText,
+          content: result.response,
           responseTime: Math.round(delay),
         });
       }
