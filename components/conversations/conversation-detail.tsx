@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { AgentAvatar } from "@/components/customize/agent-icons";
 import { ConversationMessage } from "./conversation-message";
 import { deleteConversation, getConversationIntents, type LocalConversation } from "@/lib/conversations";
 import { cn } from "@/lib/utils";
