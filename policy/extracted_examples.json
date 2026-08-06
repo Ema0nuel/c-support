@@ -1,0 +1,332 @@
+{
+  "ACCOUNT": {
+    "mapped_from": [
+      "ACCOUNT"
+    ],
+    "total_entries_in_group": 17065,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "ACCOUNT",
+        "intent": "open_account",
+        "source": "bitext_ecommerce",
+        "user_message": "wanna create a fucking user account i need asdistance",
+        "assistant_message": "Our apologies for any frustration caused by the language used. I'm here to assist you in creating a user account. Let's get started! To create an account, please provide me with the following information: 1. Your 2. Your 3. A for your account Once you provide me with these details, I will help you set up your account and ensure a smooth process. If you have any questions or encounter any difficulties, feel free to let me know."
+      },
+      {
+        "rank": 2,
+        "raw_category": "ACCOUNT",
+        "intent": "change_account",
+        "source": "bitext_ecommerce",
+        "user_message": "i have an error in my user account can i modify it",
+        "assistant_message": "Positively! I'm here to help you resolve the error in your user account. To modify it, you can follow these steps: 1. Log in to your account on our website or app. 2. Navigate to the account settings or profile section. 3. Look for the option to edit your account details. 4. Make the necessary modifications to fix the error. 5. Don't forget to save the changes before exiting. If you encounter any difficulties or need further assistance, please don't hesitate to reach out. I'll be more than happy to guide you through the process."
+      },
+      {
+        "rank": 3,
+        "raw_category": "ACCOUNT",
+        "intent": "close_account",
+        "source": "bitext_ecommerce",
+        "user_message": "how could i delete my user account",
+        "assistant_message": "I can help you with that! Deleting your user account is a straightforward process. Here's what you need to do: 1. Log in to your account on our website or app. 2. Go to the \"\" or \"\" section. 3. Look for the option to \"Delete Account\" or \"Close Account\". 4. Follow the on-screen instructions and provide any required confirmation or verification. 5. Once you've completed the steps, your user account will be deleted. If you have any trouble finding the option or need further assistance, please let me know. I'm here to help!"
+      }
+    ]
+  },
+  "ORDER": {
+    "mapped_from": [
+      "ORDER"
+    ],
+    "total_entries_in_group": 11901,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "ORDER",
+        "intent": "place_order",
+        "source": "bitext_general",
+        "user_message": "how to shop a product?",
+        "assistant_message": "I appreciate your interest in shopping our products! To make a purchase, simply follow these steps: 1. Browse our website or app to explore our wide range of products. 2. Select the items you wish to purchase and add them to your cart. 3. Review your cart to ensure you have the correct products and quantities. 4. Proceed to checkout and provide your shipping and payment information. 5. Confirm your order to complete the purchase. If you have any specific questions or need assistance during the shopping process, feel free to ask. We're here to make your shopping experience smooth and enjoyable!"
+      },
+      {
+        "rank": 2,
+        "raw_category": "ORDER",
+        "intent": "track_order",
+        "source": "bitext_ecommerce",
+        "user_message": "i requested a replacement but i have not received it i wanna track the status of my replacement product",
+        "assistant_message": "I'm sorry to hear that you haven't received your replacement product yet. Your satisfaction is important to us, and I'll be glad to help you track the status of your replacement. Here's what we can do: 1. First, let's locate your replacement request. Could you please provide me with your ? This will help me find the necessary information to assist you further. Once I have the order details, I'll check the status of your replacement product and provide you with an update. Rest assured, I'll do my best to resolve this for you as quickly as possible. Thank you for your patience!"
+      },
+      {
+        "rank": 3,
+        "raw_category": "ORDER",
+        "intent": "change_order",
+        "source": "bitext_ecommerce",
+        "user_message": "I bought an item but I chose a wrong size , I would like to modify my order",
+        "assistant_message": "I'm sorry to hear that you chose the wrong size for your item. I'll be happy to assist you in modifying your order. Here's what you can do: 1. Visit the section on our website. 2. Locate your order and click on the \"Modify\" or \"Edit\" option. 3. Look for the size customization field and update it with the correct size. 4. Make sure to review any price changes or additional charges, if applicable. 5. Save the changes to update your order with the correct size. If you encounter any difficulties during this process or have any other questions, feel free to reach out. We're here to help you!"
+      }
+    ]
+  },
+  "DELIVERY_SHIPPING": {
+    "mapped_from": [
+      "DELIVERY",
+      "SHIPPING"
+    ],
+    "total_entries_in_group": 17282,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "DELIVERY",
+        "intent": "track_delivery",
+        "source": "bitext_ecommerce",
+        "user_message": "I got to find my delivery, where could I do it?",
+        "assistant_message": "Indeed! I'm here to assist you in tracking your delivery and provide you with the information you need. To locate your delivery, you can follow these steps: 1. Visit our website and log in to your account. 2. Navigate to the \"\" or \"\" section. 3. Enter your or to retrieve the details. 4. You'll be able to see the current status, estimated delivery date, and any available tracking updates. If you encounter any difficulties or have further questions, please let me know. I'm here to help!"
+      },
+      {
+        "rank": 2,
+        "raw_category": "DELIVERY",
+        "intent": "missing_item",
+        "source": "bitext_ecommerce",
+        "user_message": "a product from my order is mssing will ya help me to report it",
+        "assistant_message": "I'm sorry to hear that a product is missing from your order. I'm here to assist you in reporting it. Please provide me with the following information: 1. Your : This will help me locate your order details quickly. 2. Specific details of the missing product(s): Please let me know the name(s) or description(s) of the missing item(s) from your order. Once I have this information, I will initiate the report to our support team. They will investigate the issue and work towards a resolution for you. We apologize for any inconvenience caused and appreciate your patience."
+      },
+      {
+        "rank": 3,
+        "raw_category": "SHIPPING",
+        "intent": "change_shipping_address",
+        "source": "bitext_general",
+        "user_message": "need assistance trying to modify my delivery address",
+        "assistant_message": "We understand that you're having trouble modifying your delivery address. Rest assured, we're here to help you with that. To update your delivery address, please follow these steps: 1. Log in to your account on our website. 2. Navigate to the \"Account Settings\" or \"Profile\" section. 3. Look for the option to edit your shipping address. 4. Click on the edit button and make the necessary changes. 5. Save your new address. If you encounter any issues during this process, please don't hesitate to reach out to our customer support team who will be happy to assist you further."
+      }
+    ]
+  },
+  "REFUND_RETURNS": {
+    "mapped_from": [
+      "REFUND",
+      "RETURNS",
+      "RETURNS AND EXCHANGES"
+    ],
+    "total_entries_in_group": 17112,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "RETURNS",
+        "intent": "refund_policy",
+        "source": "bitext_ecommerce",
+        "user_message": "I have to check your money back guarantere, how do I do it?",
+        "assistant_message": "I'm on it! I'm here to assist you with that. To check our money back guarantee, simply follow these steps: 1. Visit our website and navigate to the \"\" section. 2. Click on the link to access our detailed refund policy. 3. You'll find all the necessary information, including eligibility criteria, timeframes, and refund methods. If you have any specific questions or need further clarification about our refund policy, feel free to let me know and I'll be happy to help you out!"
+      },
+      {
+        "rank": 2,
+        "raw_category": "RETURNS",
+        "intent": "request_refund",
+        "source": "bitext_ecommerce",
+        "user_message": "I need to get a refund, where could I do it?",
+        "assistant_message": "Indeed! I'm here to assist you with your refund request. To initiate the refund process, you can follow these steps: 1. Log in to your account on our website. 2. Navigate to the \"\" or \"\" section. 3. Locate the specific order you wish to request a refund for. 4. Click on the \"\" or \"\" option next to the order. 5. Provide the necessary details about the reason for the refund request. 6. Submit the request. If you encounter any difficulties or have any further questions, please don't hesitate to reach out. I'm here to help you throughout the process."
+      },
+      {
+        "rank": 3,
+        "raw_category": "RETURNS",
+        "intent": "refund_status",
+        "source": "bitext_ecommerce",
+        "user_message": "I got to see the status of my refund, I need help",
+        "assistant_message": "I understand how important it is to check the status of your refund. Allow me to assist you with that. To determine the status of your refund, you can follow these steps: 1. Log in to your account on our website. 2. Navigate to the \"\" section or \"\" page. 3. Locate the specific order for which you requested a refund. 4. Look for the refund status or any updates related to your refund request. If you encounter any difficulties or cannot find the information you need, please don't hesitate to let me know. I'm here to provide further assistance and ensure your refund status is clarified."
+      }
+    ]
+  },
+  "COMPLAINTS": {
+    "mapped_from": [
+      "COMPLAINTS"
+    ],
+    "total_entries_in_group": 5041,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "COMPLAINTS",
+        "intent": "report_poor_signal_coverage",
+        "source": "bitext_telco",
+        "user_message": "I got to report poor signal coverage, acn I get some help?",
+        "assistant_message": "We recognize the importance of reliable signal coverage for effective communication. Please adhere to the following steps to report any issues you are experiencing with signal coverage: 1. Visit our website at . 2. Navigate to the section. 3. Select the option labeled . 4. Fill in the required details, including your location and issue description. 5. Submit the form to notify our team. Our team will investigate your report and take appropriate measures to enhance the network coverage in your vicinity."
+      },
+      {
+        "rank": 2,
+        "raw_category": "COMPLAINTS",
+        "intent": "get_compensation",
+        "source": "bitext_telco",
+        "user_message": "help me get a compensattion",
+        "assistant_message": "If you have encountered an issue with your internet service that was unresolved for multiple days and you feel that you deserve compensation, kindly adhere to the following steps: 1. Log in to your account on the . 2. Navigate to the section. 3. Select the option for . 4. Provide the necessary details of the fault, including the dates and duration of the outage. 5. Submit your request. Our team will assess your request and reach out to you with the subsequent steps or any further information needed."
+      },
+      {
+        "rank": 3,
+        "raw_category": "COMPLAINTS",
+        "intent": "report_poor_signal_coverage",
+        "source": "bitext_telco",
+        "user_message": "I'd like to report poor mobile signal coverage how do i do it",
+        "assistant_message": "We recognize that dependable signal coverage is essential for effective communication. Please follow these steps to report any issues related to poor signal coverage: 1. Visit our website at . 2. Navigate to the section. 3. Select the option labeled . 4. Fill in the required details, including your location and issue description. 5. Submit the form to notify our team. Our team will carefully assess your report and take appropriate measures to enhance network coverage in your vicinity."
+      }
+    ]
+  },
+  "BILLING_PAYMENT": {
+    "mapped_from": [
+      "PAYMENT",
+      "BILLING",
+      "BILLING AND PAYMENTS",
+      "INVOICE"
+    ],
+    "total_entries_in_group": 23446,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "PAYMENT",
+        "intent": "payment_issue",
+        "source": "bitext_ecommerce",
+        "user_message": "I didn't get an payment validation, I need help reporting a payment issue",
+        "assistant_message": "I'm sorry to hear that you didn't receive a payment validation. I understand how frustrating it can be. Don't worry, I'm here to help you with reporting the payment issue. To get started, please provide me with some details: 1. Can you please let me know the associated with the payment? Once I have this information, I'll be able to assist you further in resolving the payment issue."
+      },
+      {
+        "rank": 2,
+        "raw_category": "PAYMENT",
+        "intent": "check_mobile_payments",
+        "source": "bitext_telco",
+        "user_message": "need to see mobile payments were can i do it",
+        "assistant_message": "To verify your mobile payments, please adhere to the following steps: 1. Open the app on your mobile device. 2. Log in using your credentials. 3. Navigate to the section. 4. Tap on the option. 5. Review your recent payment transactions. If you require any additional assistance, please do not hesitate to ask."
+      },
+      {
+        "rank": 3,
+        "raw_category": "INVOICE",
+        "intent": "get_invoice",
+        "source": "bitext_general",
+        "user_message": "I have got to download the bill #12588, how do I do it?",
+        "assistant_message": "I'm following your urgency to download the bill with the number #. To assist you with this, I recommend following these steps: 1. Log in to your account on our website. 2. Navigate to the \"Billing\" or \"Invoices\" section. 3. Locate the invoice with the number #. 4. Click on the download button or link next to the invoice. 5. Choose the desired file format (PDF, Word, etc.). 6. Save the file to your preferred location on your device. If you encounter any difficulties or have further inquiries, feel free to let me know. I'm here to guide you every step of the way!\""
+      }
+    ]
+  },
+  "SUBSCRIPTION": {
+    "mapped_from": [
+      "SUBSCRIPTION"
+    ],
+    "total_entries_in_group": 10148,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "SUBSCRIPTION",
+        "intent": "sign_up_for_plan",
+        "source": "bitext_telco",
+        "user_message": "I'm looking for a fucking cell contrqct, help me to find it",
+        "assistant_message": "To sign up for a plan with , please follow the steps below: 1. Visit on your preferred browser. 2. Navigate to the section from the main menu. 3. Select the plan that best suits your needs. 4. Click the button associated with your chosen plan. 5. Fill in the required personal information and payment details. 6. Review your selections and confirm your purchase. If you encounter any issues or need further assistance, please let us know."
+      },
+      {
+        "rank": 2,
+        "raw_category": "SUBSCRIPTION",
+        "intent": "change_plan",
+        "source": "bitext_telco",
+        "user_message": "need to modify my mobioe contract can uhelp me",
+        "assistant_message": "To change your cell plan, please follow these steps: 1. Log in to your account on . 2. Navigate to the section. 3. Select the option. 4. Review the available plans and choose the one that best suits your needs. 5. Confirm your selection and follow any prompts to complete the process. If you encounter any issues, please contact customer support for further assistance."
+      },
+      {
+        "rank": 3,
+        "raw_category": "SUBSCRIPTION",
+        "intent": "cancel_plan",
+        "source": "bitext_telco",
+        "user_message": "I need to cancel my fucking internet plan",
+        "assistant_message": "We are equipped to assist you with the cancellation of your internet plan. 1. Log in to your account at . 2. Find the section. 3. Select the option. 4. Complete the on-screen prompts to finalize your cancellation. Should you require any additional help, please do not hesitate to reach out."
+      }
+    ]
+  },
+  "CANCEL": {
+    "mapped_from": [
+      "CANCEL"
+    ],
+    "total_entries_in_group": 1611,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "CANCEL",
+        "intent": "check_cancellation_fee",
+        "source": "bitext_general",
+        "user_message": "what do I need to do to check the withdrawal fees?",
+        "assistant_message": "Positively! I can guide you through the steps to check the withdrawal fees. Please follow the instructions below: 1. Log in to your account on our website. 2. Navigate to the \"Account\" or \"Settings\" section. 3. Look for the \"Withdrawal\" or \"Fees\" tab. 4. Click on it to view the withdrawal fees associated with different types of transactions. 5. Ensure you are aware of any applicable charges before making a withdrawal. If you encounter any difficulties or have any further questions, feel free to reach out to our customer support team."
+      },
+      {
+        "rank": 2,
+        "raw_category": "CANCEL",
+        "intent": "check_cancellation_fee",
+        "source": "bitext_general",
+        "user_message": "what do I have to do to see the withdrawal charge?",
+        "assistant_message": "Unquestionably! To view the withdrawal charge, you can follow these steps: 1. Log in to your account on our website or mobile app. 2. Navigate to the account settings section. 3. Look for the \"Withdrawal Charges\" or \"Cancellation Fees\" option. 4. Click on it to view the details of the withdrawal charge. If you encounter any difficulties or need further assistance, feel free to reach out to our customer support team."
+      },
+      {
+        "rank": 3,
+        "raw_category": "CANCEL",
+        "intent": "check_cancellation_fee",
+        "source": "bitext_general",
+        "user_message": "what do I have to do to check the cancellation charges?",
+        "assistant_message": "I'm happy to help! To check the cancellation charges, please follow these steps: 1. Log in to your online account on our website. 2. Navigate to the \"Account Summary\" or \"Billing\" section. 3. Look for the \"Fees and Charges\" or \"Cancellation Charges\" subsection. 4. Click on it to view the detailed information about the cancellation fees applicable to your account. If you need any further assistance, feel free to reach out to our customer support team."
+      }
+    ]
+  },
+  "CONTACT_GENERAL": {
+    "mapped_from": [
+      "CONTACT",
+      "GENERAL INQUIRY",
+      "GENERAL",
+      "CUSTOMER SERVICE"
+    ],
+    "total_entries_in_group": 13471,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "CONTACT",
+        "intent": "human_agent",
+        "source": "bitext_ecommerce",
+        "user_message": "I'd like to speak with somebody, where to do it?",
+        "assistant_message": "I apologize if you've had any trouble understanding or navigating through our chatbot. If you'd like to speak with a live person, you can reach our customer service team by phone or email. Here are the contact details: 1. Phone: (available ) 2. Email: Our dedicated team is ready to assist you and provide the support you need. Feel free to reach out to us anytime, and we'll be happy to help you with any questions or concerns you may have."
+      },
+      {
+        "rank": 2,
+        "raw_category": "CONTACT",
+        "intent": "customer_service",
+        "source": "bitext_telco",
+        "user_message": "I have to call fucking support, could I get some help?",
+        "assistant_message": "To reach our customer support department, you have multiple options to consider. Please select the method that fits your preferences best. 1. **Phone**: Reach out to our customer service by calling . 2. **Email**: You can email our support team at for assistance. 3. **Live Chat**: Go to our website and engage with our live chat feature. 4. **App**: Access the app and head to the support section for help. Feel free to choose the option that is most suitable for you, and our team will be ready to assist you efficiently."
+      },
+      {
+        "rank": 3,
+        "raw_category": "CUSTOMER SERVICE",
+        "intent": "ticket_resolution",
+        "source": "tickets_multilang_4_20k",
+        "user_message": "Could you provide information on integrating SaaS GIMP TYPO3?",
+        "assistant_message": "Please send the documentation available for APIs and plugins related to integrating SaaS GIMP TYPO3. Let us know if you would like to schedule a call to discuss your requirements and the integration process."
+      }
+    ]
+  },
+  "PRODUCT": {
+    "mapped_from": [
+      "PRODUCT",
+      "PRODUCT SUPPORT"
+    ],
+    "total_entries_in_group": 15060,
+    "examples": [
+      {
+        "rank": 1,
+        "raw_category": "PRODUCT",
+        "intent": "availability_in_store",
+        "source": "bitext_ecommerce",
+        "user_message": "could uhelp me confirmingthe availability of an item in store",
+        "assistant_message": "I'll take care of it! I'm here to assist you in checking the availability of the item you're interested in at our store. To do so, I'll need some information from you. Could you please provide me with the following details: 1. The name or description of the item you want to check availability for. 2. The name or location of the store you would like to check. Once I have these details, I'll be able to provide you with the most up-to-date information on the availability of the item at the specified store. Let me know if there's anything else I can help you with in the meantime!"
+      },
+      {
+        "rank": 2,
+        "raw_category": "PRODUCT",
+        "intent": "product_issue",
+        "source": "bitext_ecommerce",
+        "user_message": "I need to report an error in a product I received, will you help me?",
+        "assistant_message": "Absolutely, I'm here to assist you with reporting any errors or issues you've encountered with a product you received. I apologize for any inconvenience caused. Let's get this sorted out for you. Please provide me with the following information: 1. : This will help me locate your order and the specific product you're referring to. 2. Detailed description of the error or issue: Please explain the specific problem you're facing with the product, so we can better understand the situation. Once I have these details, I'll take the necessary steps to resolve the issue promptly."
+      },
+      {
+        "rank": 3,
+        "raw_category": "PRODUCT",
+        "intent": "exchange_product",
+        "source": "bitext_ecommerce",
+        "user_message": "I would like to exchange the items, can you help me?",
+        "assistant_message": "Assuredly! I'm here to assist you with exchanging your items. Let's get this resolved for you. To begin the exchange process, please follow these steps: 1. Log in to your account on our website. 2. Navigate to the \"\" or \"\" section. 3. Locate the order that includes the item you wish to exchange. 4. Click on the \"\", \"\", or \"\" option. 5. Follow the prompts to select the desired replacement product and complete the exchange request. If you encounter any difficulties or have further questions during the process, feel free to let me know. I'll be more than happy to assist you."
+      }
+    ]
+  }
+}

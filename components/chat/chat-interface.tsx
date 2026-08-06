@@ -1,229 +1,212 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { AgentAvatar } from "@/components/customize/agent-icons";
-import { MessageBubble, type ChatMessage } from "./message-bubble";
-import { TypingIndicator } from "./typing-indicator";
-import { getDefaultGreeting } from "@/lib/agent";
+import { useEffect, useCallback, useRef } from "react";
 import { useAgentStore } from "@/store/agent";
 import { useOnboardingStore } from "@/store/onboarding";
-import { cn } from "@/lib/utils";
+import { useChatStore } from "@/store/chat";
+import { getDefaultGreeting } from "@/lib/agent";
+import { createConversation, addMessage } from "@/lib/conversations";
+import { classifyIntent } from "@/lib/intent-classifier";
+import { generateResponse, type BusinessContext, type ConversationContext } from "@/lib/response-engine";
+import type { Intent } from "@/lib/intent-classifier";
+import { ChatHeader } from "./chat-header";
+import { ChatMessages } from "./chat-messages";
+import { ChatComposer } from "./chat-composer";
 
 /**
- * C-Support — Test Chat Interface
+ * C-Support — Chat Interface
  *
- * The full-page chat the Launch Agent button opens in a new tab. The
- * greeting is auto-appended as the first assistant message, then every
- * exchange is POSTed to /api/chat with the agent's full context
- * (business + agent + personality + scope + handoff) so each reply is
- * grounded in how the agent was configured.
+ * Full-page chat experience opened in a new tab from the dashboard.
+ *
+ * Lifecycle:
+ * 1. Hydration gate — wait for both Zustand stores to rehydrate
+ * 2. Auto-send greeting as first assistant message (if conversation empty)
+ * 3. User sends message → localStorage conversation created → typing indicator
+ * 4. Simulated response (1.2–1.8 s delay) → persisted to localStorage
+ *
+ * Layout: ChatHeader (flex-shrink:0) + ChatMessages (flex:1) + ChatComposer (flex-shrink:0)
  */
 export function ChatInterface() {
+  // ── Zustand: agent config ────────────────────────
   const agentName = useAgentStore((s) => s.agentName);
   const avatarId = useAgentStore((s) => s.avatarId);
   const greeting = useAgentStore((s) => s.greeting);
   const personalityId = useAgentStore((s) => s.personalityId);
-  const enabledCategories = useAgentStore((s) => s.enabledCategories);
-  const handoffMessage = useAgentStore((s) => s.handoffMessage);
+  const agentHydrated = useAgentStore((s) => s._hasHydrated);
 
+  // ── Zustand: onboarding config ───────────────────
   const businessName = useOnboardingStore((s) => s.businessName);
   const businessNiche = useOnboardingStore((s) => s.businessNiche);
-  const aiAnalysis = useOnboardingStore((s) => s.aiAnalysis);
+  const businessOrigin = useOnboardingStore((s) => s.businessOrigin);
   const policiesInput = useOnboardingStore((s) => s.policiesInput);
+  const aiAnalysis = useOnboardingStore((s) => s.aiAnalysis);
+  const onboardingHydrated = useOnboardingStore((s) => s._hasHydrated);
 
-  const fallbackGreeting = getDefaultGreeting(agentName, businessName);
-  const initialGreeting = greeting.trim() || fallbackGreeting;
+  // ── Zustand: chat state ──────────────────────────
+  const messages = useChatStore((s) => s.messages);
+  const isLoading = useChatStore((s) => s.isLoading);
+  const chatHydrated = useChatStore((s) => s._hasHydrated);
+  const addUserMessage = useChatStore((s) => s.addUserMessage);
+  const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
+  const setLoading = useChatStore((s) => s.setLoading);
+  const setConversationId = useChatStore((s) => s.setConversationId);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: "greeting", role: "assistant", content: initialGreeting },
-  ]);
-  const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState("");
+  // ── Derived ──────────────────────────────────────
+  const isHydrated = agentHydrated && onboardingHydrated && chatHydrated;
+  const displayName = agentName.trim() || "Agent";
+  const resolvedGreeting =
+    greeting.trim() || getDefaultGreeting(agentName, businessName);
 
-  const listRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const idCounter = useRef(1);
+  // Track whether greeting has been sent to avoid double-fire
+  const greetingSent = useRef(false);
 
-  const scrollToBottom = useCallback(() => {
-    listRef.current?.scrollTo({
-      top: listRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, []);
+  // Track conversation topic history for context-aware responses
+  const topicHistory = useRef<Intent[]>([]);
 
+  // ── Greeting auto-send ───────────────────────────
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping, scrollToBottom]);
+    if (!isHydrated) return;
+    if (greetingSent.current) return;
+    if (messages.length > 0) return;
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    greetingSent.current = true;
 
-  const sendMessage = async () => {
-    const content = input.trim();
-    if (!content || isTyping) return;
+    // Add greeting as first assistant message
+    addAssistantMessage(resolvedGreeting);
 
-    const userMessage: ChatMessage = {
-      id: `m${idCounter.current++}`,
-      role: "user",
-      content,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setError("");
-    setIsTyping(true);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          context: {
-            businessName,
-            businessNiche,
-            agentName,
-            personalityId,
-            enabledCategories,
-            handoffMessage,
-            baseSystemPrompt: aiAnalysis?.systemPrompt,
-            policiesExcerpt:
-              aiAnalysis?.summary?.trim() || policiesInput.trim().slice(0, 500),
-          },
-        }),
+    // If no conversation exists yet, create one in localStorage
+    const activeConvoId = useChatStore.getState().conversationId;
+    if (!activeConvoId) {
+      const convo = createConversation(resolvedGreeting);
+      setConversationId(convo.id);
+      addMessage(convo.id, {
+        role: "assistant",
+        content: resolvedGreeting,
       });
+    }
+  }, [
+    isHydrated,
+    messages.length,
+    resolvedGreeting,
+    addAssistantMessage,
+    setConversationId,
+  ]);
 
-      const data = await res.json();
+  // ── Send handler ─────────────────────────────────
+  const handleSend = useCallback(
+    async (content: string) => {
+      if (!content.trim() || isLoading) return;
 
-      if (!res.ok) {
-        throw new Error(data.error || "Something went wrong.");
+      // 1. Add user message to Zustand store
+      addUserMessage(content);
+
+      // 2. Ensure conversation exists in localStorage
+      let activeConvoId = useChatStore.getState().conversationId;
+      if (!activeConvoId) {
+        const convo = createConversation(content);
+        activeConvoId = convo.id;
+        setConversationId(convo.id);
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `m${idCounter.current++}`,
-          role: "assistant",
-          content: data.content,
-        },
-      ]);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong. Try again."
+      // Persist user message to localStorage
+      addMessage(activeConvoId, {
+        role: "user",
+        content,
+      });
+
+      // 3. Show typing indicator
+      setLoading(true);
+
+      // 4. Classify intent + generate policy-aware response
+      const currentMessages = useChatStore.getState().messages;
+      const recentHistory = currentMessages.slice(-6).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const classified = classifyIntent(content, recentHistory);
+
+      const businessContext: BusinessContext = {
+        businessName,
+        businessNiche,
+        businessOrigin,
+        policiesInput,
+        suggestedPolicies: aiAnalysis?.suggestedPolicies,
+      };
+
+      const convContext: ConversationContext = {
+        lastUserMessage: content,
+        lastAssistantMessage: recentHistory
+          .filter((m) => m.role === "assistant")
+          .at(-1)?.content,
+        topicHistory: topicHistory.current,
+      };
+
+      const delay = 1200 + Math.random() * 600;
+      await new Promise((r) => setTimeout(r, delay));
+
+      const responseText = generateResponse(
+        classified,
+        businessContext,
+        personalityId as "professional" | "friendly" | "concise" | "empathetic",
+        convContext
       );
-    } finally {
-      setIsTyping(false);
-    }
-  };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+      // Track topic history for context
+      topicHistory.current.push(classified.intent);
+      if (topicHistory.current.length > 10) {
+        topicHistory.current = topicHistory.current.slice(-10);
+      }
 
+      // 5. Add assistant message
+      addAssistantMessage(responseText);
+      setLoading(false);
+
+      // 6. Persist assistant message to localStorage
+      const currentConvoId = useChatStore.getState().conversationId;
+      if (currentConvoId) {
+        addMessage(currentConvoId, {
+          role: "assistant",
+          content: responseText,
+          responseTime: Math.round(delay),
+        });
+      }
+    },
+    [
+      isLoading,
+      addUserMessage,
+      addAssistantMessage,
+      setLoading,
+      setConversationId,
+      businessName,
+      businessNiche,
+      businessOrigin,
+      policiesInput,
+      aiAnalysis,
+      personalityId,
+    ]
+  );
+
+  // ── Loading / hydration spinner ──────────────────
+  if (!isHydrated) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-background">
+        <div className="cs-loader h-6 w-6 rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  // ── Main layout ──────────────────────────────────
   return (
     <div className="flex h-dvh flex-col bg-background">
-      {/* Header */}
-      <header className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-6">
-        <AgentAvatar avatarId={avatarId} size="md" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {agentName.trim() || "Your agent"}
-          </p>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-lime-500" />
-            Online · {businessName.trim() || "your business"}
-          </p>
-        </div>
-        <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-          Test mode
-        </span>
-      </header>
-
-      {/* Messages */}
-      <div
-        ref={listRef}
-        className="flex-1 overflow-y-auto px-4 py-6 sm:px-6"
-      >
-        <div className="mx-auto flex max-w-2xl flex-col gap-4">
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              avatarId={avatarId}
-            />
-          ))}
-
-          {isTyping && <TypingIndicator avatarId={avatarId} />}
-
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="self-center rounded-full border border-destructive/30 bg-destructive/5 px-4 py-2 text-sm text-destructive"
-            >
-              {error}
-            </motion.p>
-          )}
-        </div>
-      </div>
-
-      {/* Composer */}
-      <footer className="border-t border-border bg-card px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-2xl items-center gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask your agent a question…"
-            maxLength={500}
-            className={cn(
-              "flex h-11 flex-1 rounded-xl border border-input bg-muted px-4 text-base text-foreground",
-              "placeholder:text-muted-foreground",
-              "transition-[border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
-              "focus:border-primary focus:outline-none",
-              "hover:border-primary/30"
-            )}
-          />
-          <button
-            type="button"
-            onClick={sendMessage}
-            disabled={!input.trim() || isTyping}
-            aria-label="Send message"
-            className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
-              "active:scale-[0.96]",
-              input.trim() && !isTyping
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "cursor-not-allowed bg-muted text-muted-foreground/40"
-            )}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="h-5 w-5"
-              aria-hidden="true"
-            >
-              <path
-                d="M5 12h13M13 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </footer>
+      <ChatHeader agentName={displayName} avatarId={avatarId} />
+      <ChatMessages
+        messages={messages}
+        isHydrated={isHydrated}
+        isLoading={isLoading}
+        avatarId={avatarId}
+      />
+      <ChatComposer onSend={handleSend} disabled={isLoading} />
     </div>
   );
 }

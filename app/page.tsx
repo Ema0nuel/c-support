@@ -1,9 +1,14 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAgentStore } from "@/store/agent";
 
 /**
  * C-Support — Home Page
  *
- * First impression. Earns an authored entrance sequence (rare/first-time).
+ * If the agent is already configured (isComplete + has a name),
+ * automatically redirect to /dashboard. Otherwise show the landing page.
  *
  * Emil Kowalski: "Rare/first-time (onboarding, celebrations) → Can add delight."
  * Uses CSS @keyframes for GPU-accelerated entrance (not Framer Motion).
@@ -11,6 +16,43 @@ import Link from "next/link";
  * because the button will be used repeatedly.
  */
 export default function Home() {
+  const isComplete = useAgentStore((s) => s.isComplete);
+  const agentName = useAgentStore((s) => s.agentName);
+  const hydrated = useAgentStore((s) => s._hasHydrated);
+  const [redirecting, setRedirecting] = useState(false);
+
+  useEffect(() => {
+    if (hydrated && isComplete && agentName.trim()) {
+      setRedirecting(true);
+      // Small delay so the user sees the redirect state
+      const t = setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [hydrated, isComplete, agentName]);
+
+  // Redirecting state
+  if (redirecting) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center bg-teal-950 px-6">
+        <div className="flex items-center gap-3 text-teal-100">
+          <span className="cs-loader h-5 w-5 rounded-full border-2 border-teal-600 border-t-lime-400" />
+          <span className="text-sm">Opening your dashboard…</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Still hydrating — show nothing (will redirect or show landing)
+  if (!hydrated) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-teal-950">
+        <span className="cs-loader h-5 w-5 rounded-full border-2 border-teal-600 border-t-lime-400" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-teal-950 px-6">
       <main className="flex flex-col items-center text-center">
