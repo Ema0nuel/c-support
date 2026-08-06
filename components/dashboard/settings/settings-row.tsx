@@ -1,210 +1,162 @@
 "use client";
 
-import * as React from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Pencil, Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 /**
- * C-Support — SettingsRow Component
+ * C-Support — Settings Row
  *
- * A reusable inline-editable row for the settings page.
- * Displays a label and value in read mode; switches to an input
- * on edit, with save/cancel controls.
+ * Reusable read/edit inline row. Shows a label + value in read mode,
+ * expands to input/textarea + Save/Cancel in edit mode.
  *
- * Emil Kowalski: "Specify exact transition properties, never transition-all."
- * Easing: cubic-bezier(0.23, 1, 0.32, 1) — strong ease-out.
+ * Emil: "transition: border-color 160ms ease-out" — focus ring on input.
  */
 
-export interface SettingsRowProps {
-  /** Label displayed on the left side */
+interface SettingsRowProps {
   label: string;
-  /** Current value displayed in read mode */
   value: string;
-  /** Placeholder for the input when value is empty */
+  onSave: (value: string) => void;
+  /** "input" for single-line, "textarea" for multi-line */
+  type?: "input" | "textarea";
   placeholder?: string;
-  /** Called when the user saves the new value */
-  onSave: (value: string) => Promise<void> | void;
-  /** Optional HTML input type (default: "text") */
-  type?: string;
-  /** Disable the edit button */
-  disabled?: boolean;
-  /** Additional class names for the outer container */
+  maxLength?: number;
+  showCount?: boolean;
   className?: string;
+  /** Optional content to render below the value in read mode */
+  children?: React.ReactNode;
 }
 
 export function SettingsRow({
   label,
   value,
-  placeholder = "Enter value...",
   onSave,
-  type = "text",
-  disabled = false,
+  type = "input",
+  placeholder,
+  maxLength,
+  showCount,
   className,
+  children,
 }: SettingsRowProps) {
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [editValue, setEditValue] = React.useState(value);
-  const [isSaving, setIsSaving] = React.useState(false);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  // Focus input when entering edit mode
-  React.useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+  useEffect(() => {
+    if (editing) {
+      setDraft(value);
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
     }
-  }, [isEditing]);
+  }, [editing, value]);
 
-  // Sync external value changes
-  React.useEffect(() => {
-    if (!isEditing) {
-      setEditValue(value);
-    }
-  }, [value, isEditing]);
-
-  function handleEdit() {
-    if (disabled) return;
-    setEditValue(value);
-    setIsEditing(true);
-  }
-
-  function handleCancel() {
-    setEditValue(value);
-    setIsEditing(false);
-  }
-
-  async function handleSave() {
-    const trimmed = editValue.trim();
-    if (trimmed === value) {
-      setIsEditing(false);
+  const handleSave = () => {
+    const trimmed = draft.trim();
+    if (!trimmed) {
+      setError("This field is required");
       return;
     }
-    setIsSaving(true);
-    try {
-      await onSave(trimmed);
-      setIsEditing(false);
-    } catch {
-      // Keep editing on error so user can retry
-    } finally {
-      setIsSaving(false);
+    if (maxLength && trimmed.length > maxLength) {
+      setError(`Keep it under ${maxLength} characters`);
+      return;
     }
-  }
+    onSave(trimmed);
+    setEditing(false);
+    setError("");
+  };
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSave();
-    }
-    if (e.key === "Escape") {
-      e.preventDefault();
-      handleCancel();
-    }
-  }
+  const handleCancel = () => {
+    setDraft(value);
+    setError("");
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && type === "input") handleSave();
+    if (e.key === "Escape") handleCancel();
+  };
 
   return (
     <div
       className={cn(
-        "group flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-5 py-4",
-        // Subtle hover highlight on fine-pointer devices only
-        !isEditing && "hover:border-primary/20",
+        "rounded-xl border border-border bg-card px-4 py-3",
         "transition-[border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
+        editing && "ring-1 ring-primary/20",
         className
       )}
     >
-      {/* Label */}
-      <span className="text-sm font-medium text-muted-foreground select-none min-w-[120px]">
-        {label}
-      </span>
-
-      {/* Value / Input */}
-      <div className="flex flex-1 items-center justify-end gap-3">
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            type={type}
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={isSaving}
-            className={cn(
-              "flex-1 max-w-xs rounded-lg border border-input bg-muted px-3 py-1.5 text-sm text-foreground",
-              "placeholder:text-muted-foreground",
-              "transition-[border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
-              "focus:border-primary focus:outline-none focus:shadow-none",
-              "disabled:opacity-50"
-            )}
-          />
-        ) : (
-          <span
-            className={cn(
-              "text-sm text-foreground truncate max-w-xs",
-              !value && "text-muted-foreground italic"
-            )}
+      {/* Label row */}
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        {!editing && (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="text-xs font-medium text-primary/70 transition-colors duration-150 hover:text-primary"
           >
-            {value || placeholder}
-          </span>
+            Edit
+          </button>
         )}
-
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          {isEditing ? (
-            <>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSaving}
-                className={cn(
-                  "inline-flex items-center justify-center h-8 w-8 rounded-lg",
-                  "text-primary-foreground bg-primary",
-                  "transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
-                  "hover:bg-primary/90 active:scale-[0.97]",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
-                  "disabled:pointer-events-none disabled:opacity-50"
-                )}
-                aria-label={`Save ${label}`}
-              >
-                <Check className="h-4 w-4" strokeWidth={2.5} />
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={isSaving}
-                className={cn(
-                  "inline-flex items-center justify-center h-8 w-8 rounded-lg",
-                  "text-muted-foreground",
-                  "transition-[transform,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
-                  "hover:text-foreground hover:bg-accent active:scale-[0.97]",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
-                  "disabled:pointer-events-none disabled:opacity-50"
-                )}
-                aria-label={`Cancel editing ${label}`}
-              >
-                <X className="h-4 w-4" strokeWidth={2.5} />
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={handleEdit}
-              disabled={disabled}
-              className={cn(
-                "inline-flex items-center justify-center h-8 w-8 rounded-lg",
-                "text-muted-foreground",
-                "transition-[transform,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
-                "hover:text-primary hover:bg-accent active:scale-[0.97]",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
-                "disabled:pointer-events-none disabled:opacity-50",
-                // Only show on hover for fine-pointer devices
-                "opacity-0 group-hover:opacity-100",
-                "[@media(hover:none)]:opacity-100"
-              )}
-              aria-label={`Edit ${label}`}
-            >
-              <Pencil className="h-4 w-4" strokeWidth={2} />
-            </button>
-          )}
-        </div>
       </div>
+
+      {/* Read mode */}
+      {!editing && (
+        <>
+          <p className="mt-1 text-sm font-medium text-white/80">
+            {value || <span className="text-muted-foreground">Not set</span>}
+          </p>
+          {children}
+        </>
+      )}
+
+      {/* Edit mode */}
+      {editing && (
+        <div className="mt-2">
+          {type === "textarea" ? (
+            <Textarea
+              ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                setError("");
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              showCount={showCount}
+              maxLength={maxLength}
+              error={error}
+              className="min-h-[100px] text-sm"
+            />
+          ) : (
+            <Input
+              ref={inputRef as React.RefObject<HTMLInputElement>}
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                setError("");
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              maxLength={maxLength}
+              error={error}
+              className="text-sm"
+            />
+          )}
+          <div className="mt-2 flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              Save
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
