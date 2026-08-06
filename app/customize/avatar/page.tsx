@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepAvatar } from "@/components/customize/steps/step-avatar";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Avatar — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizeAvatarPage() {
-  return <StepAvatar />;
+  return (
+    <OnboardingGuard>
+      <StepAvatar />
+    </OnboardingGuard>
+  );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepHandoff } from "@/components/customize/steps/step-handoff";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Handoff — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizeHandoffPage() {
-  return <StepHandoff />;
+  return (
+    <OnboardingGuard>
+      <StepHandoff />
+    </OnboardingGuard>
+  );
 }

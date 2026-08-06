@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepPersonality } from "@/components/customize/steps/step-personality";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Personality — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizePersonalityPage() {
-  return <StepPersonality />;
+  return (
+    <OnboardingGuard>
+      <StepPersonality />
+    </OnboardingGuard>
+  );
 }

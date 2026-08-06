@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepGreeting } from "@/components/customize/steps/step-greeting";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Greeting — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizeGreetingPage() {
-  return <StepGreeting />;
+  return (
+    <OnboardingGuard>
+      <StepGreeting />
+    </OnboardingGuard>
+  );
 }

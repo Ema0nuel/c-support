@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ConversationPage } from "@/components/conversations/conversation-page";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Conversations — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ConversationsRoute() {
-  return <ConversationPage />;
+  return (
+    <OnboardingGuard>
+      <ConversationPage />
+    </OnboardingGuard>
+  );
 }

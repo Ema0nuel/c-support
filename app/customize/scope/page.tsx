@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepScope } from "@/components/customize/steps/step-scope";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Knowledge — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizeScopePage() {
-  return <StepScope />;
+  return (
+    <OnboardingGuard>
+      <StepScope />
+    </OnboardingGuard>
+  );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ChatInterface } from "@/components/chat/chat-interface";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Test your agent — C-Support",
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function ChatPage() {
-  return <ChatInterface />;
+  return (
+    <OnboardingGuard>
+      <ChatInterface />
+    </OnboardingGuard>
+  );
 }

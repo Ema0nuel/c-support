@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepAgentName } from "@/components/customize/steps/step-agent-name";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Agent Name — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizeNamePage() {
-  return <StepAgentName />;
+  return (
+    <OnboardingGuard>
+      <StepAgentName />
+    </OnboardingGuard>
+  );
 }

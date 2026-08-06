@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Dashboard } from "@/components/dashboard/dashboard";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Dashboard — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <Dashboard />;
+  return (
+    <OnboardingGuard>
+      <Dashboard />
+    </OnboardingGuard>
+  );
 }

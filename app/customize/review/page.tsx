@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StepReview } from "@/components/customize/steps/step-review";
+import { OnboardingGuard } from "@/components/guards/onboarding-guard";
 
 export const metadata: Metadata = {
   title: "Review — C-Support",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function CustomizeReviewPage() {
-  return <StepReview />;
+  return (
+    <OnboardingGuard>
+      <StepReview />
+    </OnboardingGuard>
+  );
 }
