@@ -5,6 +5,7 @@ import { SettingsRow } from "./settings-row";
 import { PersonalitySelector } from "./personality-selector";
 import { AvatarSelector } from "./avatar-selector";
 import { ScopeChips } from "./scope-chips";
+import { ResetSection } from "./reset-section";
 import { useAgentStore } from "@/store/agent";
 import { useOnboardingStore } from "@/store/onboarding";
 import { DEFAULT_SCOPE } from "@/lib/agent";
@@ -112,12 +113,15 @@ export function AgentTab() {
         showCount
       />
 
-      {/* Reset to defaults */}
+      {/* Reset to defaults (agent only) */}
       <div className="pt-2">
         <Button variant="ghost" size="sm" onClick={handleReset} className="text-destructive/70 hover:text-destructive hover:bg-destructive/10">
           Reset agent to defaults
         </Button>
       </div>
+
+      {/* Full data reset */}
+      <ResetSection />
     </motion.div>
   );
 }

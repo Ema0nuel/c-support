@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { useAgentStore } from "@/store/agent";
 import { useOnboardingStore } from "@/store/onboarding";
@@ -12,19 +11,18 @@ import { AgentTab } from "./agent-tab";
  * C-Support — Settings Panel
  *
  * Full settings view with Business / Agent sub-tabs.
+ * Tab state managed via Zustand agent store (persists across sessions).
  * Reads from both Zustand stores. Writes back on edit.
- * Replaces the old static SettingsView in dashboard.tsx.
  */
 
-type SettingsTab = "business" | "agent";
-
-const TABS: { id: SettingsTab; label: string }[] = [
-  { id: "business", label: "Business" },
-  { id: "agent", label: "Agent" },
+const TABS = [
+  { id: "business" as const, label: "Business" },
+  { id: "agent" as const, label: "Agent" },
 ];
 
 export function SettingsPanel() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("business");
+  const activeTab = useAgentStore((s) => s.settingsTab);
+  const setActiveTab = useAgentStore((s) => s.setSettingsTab);
 
   const agentHydrated = useAgentStore((s) => s._hasHydrated);
   const onboardingHydrated = useOnboardingStore((s) => s._hasHydrated);

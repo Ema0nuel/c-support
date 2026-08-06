@@ -41,6 +41,11 @@ yarn-error.log*
 next-env.d.ts
 
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # CLAUDE & AI INSTRUCTION FILES
 CLAUDE.md
 AGENTS.md

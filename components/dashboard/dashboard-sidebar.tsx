@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAgentStore } from "@/store/agent";
 import { CSupportMark, AgentAvatar } from "@/components/customize/agent-icons";
 import {
   DashboardIcon,
@@ -15,9 +17,8 @@ import {
 export type DashboardTab = "dashboard" | "conversations";
 
 interface DashboardSidebarProps {
-  activeTab: DashboardTab;
-  onTabChange: (tab: DashboardTab) => void;
-  avatarId?: string;
+  activeTab?: DashboardTab;
+  onTabChange?: (tab: DashboardTab) => void;
 }
 
 // ─── Nav Items ──────────────────────────────────────
@@ -26,10 +27,11 @@ const NAV_ITEMS: {
   id: DashboardTab;
   label: string;
   mobileLabel: string;
+  href: string;
   Icon: (props: { className?: string }) => React.ReactNode;
 }[] = [
-  { id: "dashboard", label: "Dashboard", mobileLabel: "Dash", Icon: DashboardIcon },
-  { id: "conversations", label: "Conversations", mobileLabel: "Chats", Icon: ConversationsIcon },
+  { id: "dashboard", label: "Dashboard", mobileLabel: "Dash", href: "/dashboard", Icon: DashboardIcon },
+  { id: "conversations", label: "Conversations", mobileLabel: "Chats", href: "/conversation", Icon: ConversationsIcon },
 ];
 
 // ═══════════════════════════════════════════════════
@@ -39,8 +41,11 @@ const NAV_ITEMS: {
 function DesktopSidebar({
   activeTab,
   onTabChange,
-  avatarId,
 }: DashboardSidebarProps) {
+  const pathname = usePathname();
+  const isSettingsPage = pathname.startsWith("/settings");
+  const avatarId = useAgentStore((s) => s.avatarId);
+
   return (
     <aside className="hidden md:flex flex-col w-[220px] shrink-0 h-screen sticky top-0 z-30">
       {/* Glass background */}
@@ -62,13 +67,13 @@ function DesktopSidebar({
         {/* Navigation */}
         <nav className="flex flex-col gap-1" role="tablist">
           {NAV_ITEMS.map((item) => {
-            const isActive = activeTab === item.id;
+            const isActive = !isSettingsPage && pathname.startsWith(item.href);
             return (
-              <button
+              <Link
                 key={item.id}
+                href={item.href}
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => onTabChange(item.id)}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium",
                   "transition-colors duration-200",
@@ -83,7 +88,7 @@ function DesktopSidebar({
               >
                 <item.Icon className="h-[18px] w-[18px] shrink-0" />
                 <span>{item.label}</span>
-              </button>
+              </Link>
             );
           })}
         </nav>
@@ -97,9 +102,11 @@ function DesktopSidebar({
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium",
             "transition-colors duration-200",
-            "hover:bg-white/5",
-            "text-[#A9C3BC]/50 hover:text-[#A9C3BC]/70"
+            isSettingsPage
+              ? "text-[#B8DE72]"
+              : "hover:bg-white/5 text-[#A9C3BC]/50 hover:text-[#A9C3BC]/70"
           )}
+          style={isSettingsPage ? { background: "rgba(184,222,114,0.1)" } : undefined}
         >
           <SettingsIcon className="h-[18px] w-[18px] shrink-0" />
           <span>Settings</span>
@@ -119,7 +126,7 @@ function DesktopSidebar({
           className="flex items-center gap-3 px-3 py-3 rounded-xl"
           style={{ background: "rgba(2,75,65,0.5)" }}
         >
-          <AgentAvatar avatarId={avatarId ?? "spark"} size="sm" />
+          <AgentAvatar avatarId={avatarId} size="sm" />
           <div className="flex flex-col">
             <span className="text-[11px] font-medium text-white/80">
               Agent
@@ -146,7 +153,9 @@ function MobileIsland({
   activeTab,
   onTabChange,
 }: DashboardSidebarProps) {
-  const activeIndex = NAV_ITEMS.findIndex((n) => n.id === activeTab);
+  const pathname = usePathname();
+  const isSettingsPage = pathname.startsWith("/settings");
+  const activeIndex = isSettingsPage ? -1 : NAV_ITEMS.findIndex((n) => n.id === activeTab);
 
   return (
     <nav
@@ -159,14 +168,14 @@ function MobileIsland({
         border: "1px solid rgba(23,96,85,0.5)",
       }}
     >
-      {NAV_ITEMS.map((item, idx) => {
-        const isActive = activeTab === item.id;
+      {NAV_ITEMS.map((item) => {
+        const isActive = !isSettingsPage && pathname.startsWith(item.href);
         return (
-          <button
+          <Link
             key={item.id}
+            href={item.href}
             role="tab"
             aria-selected={isActive}
-            onClick={() => onTabChange(item.id)}
             className={cn(
               "relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-full",
               "text-[10px] font-medium",
@@ -192,14 +201,20 @@ function MobileIsland({
 
             <item.Icon className="h-[18px] w-[18px] relative z-10" />
             <span className="relative z-10">{item.mobileLabel}</span>
-          </button>
+          </Link>
         );
       })}
 
       {/* Settings — routes to /settings */}
       <Link
         href="/settings"
-        className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-full text-[10px] font-medium text-[#A9C3BC]/50"
+        className={cn(
+          "relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-full text-[10px] font-medium",
+          isSettingsPage
+            ? "text-[#B8DE72]"
+            : "text-[#A9C3BC]/50"
+        )}
+        style={isSettingsPage ? { background: "rgba(184,222,114,0.1)" } : undefined}
       >
         <SettingsIcon className="h-[18px] w-[18px] relative z-10" />
         <span className="relative z-10">Settings</span>

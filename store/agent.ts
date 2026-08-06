@@ -32,16 +32,20 @@ interface AgentState {
   // Navigation — unlocked rail steps (1-based)
   visitedSteps: number[];
 
+  // Settings UI — active tab (business | agent)
+  settingsTab: "business" | "agent";
+
   // Hydration
   _hasHydrated: boolean;
 
   // Actions
   updateField: (field: keyof Omit<
     AgentState,
-    "visitedSteps" | "_hasHydrated" | "isComplete"
+    "visitedSteps" | "_hasHydrated" | "isComplete" | "settingsTab"
   >, value: string) => void;
   setEnabledCategories: (categories: string[]) => void;
   setVisitedStep: (num: number) => void;
+  setSettingsTab: (tab: "business" | "agent") => void;
   markComplete: () => void;
   reset: () => void;
   setHasHydrated: (value: boolean) => void;
@@ -60,6 +64,7 @@ export const useAgentStore = create<AgentState>()(
       handoffMessage: "",
       isComplete: false,
       visitedSteps: INITIAL_VISITED,
+      settingsTab: "business",
       _hasHydrated: false,
 
       updateField: (field, value) =>
@@ -77,6 +82,8 @@ export const useAgentStore = create<AgentState>()(
 
       markComplete: () => set({ isComplete: true }),
 
+      setSettingsTab: (tab) => set({ settingsTab: tab }),
+
       reset: () =>
         set({
           agentName: "",
@@ -87,6 +94,7 @@ export const useAgentStore = create<AgentState>()(
           handoffMessage: "",
           isComplete: false,
           visitedSteps: INITIAL_VISITED,
+          settingsTab: "business",
         }),
 
       setHasHydrated: (value) => set({ _hasHydrated: value }),
@@ -103,6 +111,7 @@ export const useAgentStore = create<AgentState>()(
         handoffMessage: state.handoffMessage,
         isComplete: state.isComplete,
         visitedSteps: state.visitedSteps,
+        settingsTab: state.settingsTab,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

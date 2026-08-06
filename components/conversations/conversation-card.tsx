@@ -54,7 +54,7 @@ const INTENT_LABELS: Record<string, string> = {
 
 interface ConversationCardProps {
   conversation: LocalConversation;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export function ConversationCard({ conversation, onClick }: ConversationCardProps) {
