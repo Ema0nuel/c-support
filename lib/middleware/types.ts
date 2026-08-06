@@ -148,7 +148,7 @@ export interface ValidationResult {
 }
 
 export interface ValidationIssue {
-  type: "hallucination" | "policy_violation" | "off_topic" | "tone_mismatch" | "incomplete";
+  type: "hallucination" | "policy_violation" | "off_topic" | "tone_mismatch" | "incomplete" | "policy_leak";
   severity: "low" | "medium" | "high";
   description: string;
   suggestion: string;

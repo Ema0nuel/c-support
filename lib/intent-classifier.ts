@@ -452,6 +452,23 @@ function isFollowUpMessage(
   return false;
 }
 
+// ── Word-Boundary-Aware Keyword Matching ──────────
+// Prevents substring false positives like "iphone" matching "phone".
+// Uses zero-width lookbehind/lookahead to ensure the keyword is not
+// embedded inside a longer word.
+
+function hasKeyword(text: string, keyword: string): boolean {
+  // For short keywords (≤6 chars), use word-boundary regex to prevent
+  // substring false positives (e.g., "phone" inside "iphone")
+  if (keyword.length <= 6) {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`(?<![a-z])${escaped}(?![a-z])`, "i");
+    return pattern.test(text);
+  }
+  // For longer keywords, substring match is fine (unlikely false positives)
+  return text.includes(keyword);
+}
+
 // ── Levenshtein Distance ──────────────────────────
 
 function levenshtein(a: string, b: string): number {
@@ -588,9 +605,10 @@ export function classifyIntent(
       }
     }
 
-    // Check keywords
+    // Check keywords — use word-boundary matching for short keywords
+    // to prevent false positives like "phone" inside "iphone"
     for (const keyword of rule.keywords) {
-      if (correctedMsg.includes(keyword) || msg.includes(keyword)) {
+      if (hasKeyword(correctedMsg, keyword) || hasKeyword(msg, keyword)) {
         score += 1;
         matchedKw.push(`kw:"${keyword}"`);
       }

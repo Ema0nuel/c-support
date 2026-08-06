@@ -84,12 +84,9 @@ ${policies}`;
 
 export async function callLLM(messages: Message[]): Promise<string> {
   if (!API_KEY) {
-    return JSON.stringify({
-      matchedCategories: [],
-      systemPrompt: "",
-      summary: "AI model not configured. Please set the LLM_API_KEY environment variable.",
-      suggestedPolicies: [],
-    });
+    throw new Error(
+      "AI service is not configured. Please set the LLM_API_KEY environment variable in your .env file and restart the dev server."
+    );
   }
 
   const payload = {

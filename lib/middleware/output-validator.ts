@@ -108,22 +108,33 @@ function checkPolicyAdherence(
   const issues: ValidationIssue[] = [];
   let adherenceScore = 1.0;
 
-  // If policies were provided, check that the response references them
-  if (context.relevantPolicies.length > 0) {
-    const responseLower = response.toLowerCase();
-    const policyReferenced = context.relevantPolicies.some((policy) => {
-      const keywords = policy.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
-      return keywords.some((kw) => responseLower.includes(kw));
-    });
+  // If policies were provided, check that the response addresses the topic
+  // (not that it quotes policy keywords — that would encourage verbatim copying)
+  if (context.relevantPolicies.length > 0 && response.length > 30) {
+    // Extract the main topic from each policy (first few words / category label)
+    const policyTopics = context.relevantPolicies.map((p) => {
+      const colonIdx = p.indexOf(":");
+      return colonIdx > 0 ? p.slice(0, colonIdx).trim().toLowerCase() : "";
+    }).filter(Boolean);
 
-    if (!policyReferenced) {
-      adherenceScore -= 0.3;
-      issues.push({
-        type: "policy_violation",
-        severity: "medium",
-        description: "Response does not reference any of the relevant business policies",
-        suggestion: "Ensure the response incorporates the business policies",
+    // Check if at least one policy topic is addressed (by concept, not exact words)
+    if (policyTopics.length > 0) {
+      const responseLower = response.toLowerCase();
+      const topicAddressed = policyTopics.some((topic) => {
+        // Check topic words appear (allowing partial matches for flexibility)
+        const words = topic.split(/\s+/).filter((w) => w.length > 3);
+        return words.some((w) => responseLower.includes(w));
       });
+
+      if (!topicAddressed) {
+        adherenceScore -= 0.2;
+        issues.push({
+          type: "policy_violation",
+          severity: "low",
+          description: "Response may not address the relevant policy topics",
+          suggestion: "Ensure the response covers the policy areas the customer asked about",
+        });
+      }
     }
   }
 
@@ -217,6 +228,69 @@ function checkTopicContinuity(
   };
 }
 
+// ── Sub-Agent: Policy Leak Detection ──────────────
+// Checks that the response does NOT contain verbatim policy text.
+// Policies are internal reference — customers should see natural summaries.
+
+function checkPolicyLeak(
+  response: string,
+  businessContext: BusinessContext
+): { score: number; issues: ValidationIssue[] } {
+  const issues: ValidationIssue[] = [];
+  let leakScore = 0;
+
+  if (!businessContext.policiesInput) return { score: 1, issues };
+
+  const responseLower = response.toLowerCase();
+  const policyText = businessContext.policiesInput;
+
+  // Split policies into individual lines/entries
+  const policyLines = policyText
+    .split(/\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 20);
+
+  // Check for verbatim policy passages (5+ consecutive words matching)
+  for (const line of policyLines) {
+    const words = line.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+
+    // Check for 5-word subsequences that appear in both policy and response
+    for (let i = 0; i <= words.length - 5; i++) {
+      const phrase = words.slice(i, i + 5).join(" ");
+      if (responseLower.includes(phrase)) {
+        leakScore += 0.15;
+        issues.push({
+          type: "policy_leak",
+          severity: "high",
+          description: `Response appears to quote policy text verbatim: "${phrase.slice(0, 50)}..."`,
+          suggestion: "Rephrase in natural language — policies are internal reference only",
+        });
+        break; // One flag per policy line is enough
+      }
+    }
+  }
+
+  // Also check for long quoted segments (phrases in quotes or bold from policies)
+  const quotedPatterns = response.match(/[""`]([^"`]+)[""`]/g) || [];
+  for (const quoted of quotedPatterns) {
+    const inner = quoted.slice(1, -1).toLowerCase();
+    if (inner.length > 30 && policyText.toLowerCase().includes(inner.slice(0, 30))) {
+      leakScore += 0.2;
+      issues.push({
+        type: "policy_leak",
+        severity: "medium",
+        description: `Response contains a quoted passage that matches policy text`,
+        suggestion: "Remove quotes and paraphrase the policy intent instead",
+      });
+    }
+  }
+
+  return {
+    score: Math.max(0, 1 - leakScore),
+    issues,
+  };
+}
+
 // ── Sub-Agent: Tone Check ─────────────────────────
 // Checks that the tone matches the customer's sentiment
 
@@ -302,6 +376,7 @@ export function validateResponse(
   // Run all sub-agent checks
   const hallucinationCheck = checkHallucination(response, businessContext);
   const policyCheck = checkPolicyAdherence(response, context);
+  const policyLeakCheck = checkPolicyLeak(response, businessContext);
   const continuityCheck = checkTopicContinuity(response, topic, context);
   const toneCheck = checkTone(response, topic);
 
@@ -314,18 +389,20 @@ export function validateResponse(
     overall: 0,
   };
 
-  // Weighted overall score
+  // Weighted overall score — policy leak is critical (weighted heavily)
   quality.overall = (
-    quality.policyAdherence * 0.3 +
-    (1 - quality.hallucinationRisk) * 0.3 +
-    quality.topicContinuity * 0.2 +
-    quality.toneScore * 0.2
+    quality.policyAdherence * 0.2 +
+    (1 - quality.hallucinationRisk) * 0.2 +
+    policyLeakCheck.score * 0.3 +   // Policy leaking is a security issue — high weight
+    quality.topicContinuity * 0.15 +
+    quality.toneScore * 0.15
   );
 
   // Collect all issues
   const allIssues = [
     ...hallucinationCheck.issues,
     ...policyCheck.issues,
+    ...policyLeakCheck.issues,
     ...continuityCheck.issues,
     ...toneCheck.issues,
   ];
@@ -352,15 +429,34 @@ export function rewriteResponse(
 ): string {
   let rewritten = response;
 
-  // Remove hallucinated URLs if flagged
+  // ── Policy leak: strip verbatim policy passages ──
+  const hasPolicyLeak = validation.issues.some((i) => i.type === "policy_leak");
+  if (hasPolicyLeak && context.relevantPolicies.length > 0) {
+    // Remove quoted sections that match policy text
+    for (const policy of context.relevantPolicies) {
+      const policyWords = policy.toLowerCase().split(/\s+/).filter((w) => w.length > 4);
+      for (let i = 0; i <= policyWords.length - 5; i++) {
+        const phrase = policyWords.slice(i, i + 5).join(" ");
+        const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(`[""\`]?${escaped}[""\`]?`, "gi");
+        rewritten = rewritten.replace(regex, "").trim();
+      }
+    }
+    // Clean up orphaned bullet points left behind
+    rewritten = rewritten
+      .replace(/^\s*[-•*]\s*$/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  // ── Hallucination: remove fabricated data ──
   for (const issue of validation.issues) {
     if (issue.type === "hallucination" && issue.severity === "high") {
-      // Remove phone numbers that aren't in policies
       rewritten = rewritten.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, "[contact information]");
     }
   }
 
-  // If response is too short, add a follow-up prompt
+  // If response is too short after rewriting, add a follow-up prompt
   if (rewritten.length < 50) {
     const topic = context.topicNarrative.includes("out of scope")
       ? "this matter"

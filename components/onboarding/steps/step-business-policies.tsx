@@ -1,13 +1,27 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BusinessPoliciesIcon } from "../step-icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { useOnboardingStore } from "@/store/onboarding";
+import { useOnboardingStore, type AIAnalysis } from "@/store/onboarding";
 import { cn } from "@/lib/utils";
+
+/**
+ * Check if an AIAnalysis result is actually valid (has real data).
+ * When the LLM returns an error stub (empty categories + empty policies),
+ * the analysis should be treated as failed — not shown as results.
+ */
+function isAnalysisValid(analysis: AIAnalysis | null): boolean {
+  if (!analysis) return false;
+  const hasCategories = analysis.matchedCategories.length > 0;
+  const hasPolicies = analysis.suggestedPolicies.length > 0;
+  const hasSummary = analysis.summary.trim().length > 0;
+  // Must have at least categories OR policies AND a summary
+  return (hasCategories || hasPolicies) && hasSummary;
+}
 
 interface StepBusinessPoliciesProps {
   onBack: () => void;
@@ -47,6 +61,15 @@ export function StepBusinessPolicies({ onBack }: StepBusinessPoliciesProps) {
   const [analysisStep, setAnalysisStep] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ─── Auto-clear stale/invalid analysis from prior session ──
+  // When the user resumes onboarding after a failed analysis was persisted,
+  // clear it so they see the input form instead of broken results.
+  useEffect(() => {
+    if (aiAnalysis && !isAnalysisValid(aiAnalysis)) {
+      setAiAnalysis(null);
+    }
+  }, [aiAnalysis, setAiAnalysis]);
 
   // ─── File handling ────────────────────────────────
   const processFile = useCallback(async (file: File) => {
@@ -156,6 +179,9 @@ export function StepBusinessPolicies({ onBack }: StepBusinessPoliciesProps) {
         throw new Error(data.error || "Analysis failed");
       }
 
+      // Clear any prior stale analysis before storing new results
+      setAiAnalysis(null);
+
       setAiAnalysis(data);
     } catch (err) {
       setError(
@@ -163,6 +189,7 @@ export function StepBusinessPolicies({ onBack }: StepBusinessPoliciesProps) {
           ? err.message
           : "Failed to analyze policies. Please try again."
       );
+      setAiAnalysis(null);
       setAnalyzing(false);
     }
   };
@@ -458,7 +485,7 @@ export function StepBusinessPolicies({ onBack }: StepBusinessPoliciesProps) {
           transition={{ delay: 0.15, duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
           className="mb-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
         >
-          {aiAnalysis
+          {isAnalysisValid(aiAnalysis)
             ? "Analysis Complete"
             : isAnalyzing
               ? "Analyzing your policies"
@@ -471,7 +498,7 @@ export function StepBusinessPolicies({ onBack }: StepBusinessPoliciesProps) {
           transition={{ delay: 0.2, duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
           className="mb-8 text-sm text-muted-foreground"
         >
-          {aiAnalysis
+          {isAnalysisValid(aiAnalysis)
             ? "The AI has analyzed your policies and created a knowledge base profile."
             : isAnalyzing
               ? "The AI is comparing your policies against our training categories..."
@@ -485,9 +512,9 @@ export function StepBusinessPolicies({ onBack }: StepBusinessPoliciesProps) {
           transition={{ delay: 0.25, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           <AnimatePresence mode="wait">
-            {isAnalyzing && !aiAnalysis ? (
+            {isAnalyzing && !isAnalysisValid(aiAnalysis) ? (
               renderAnalysisLoading()
-            ) : aiAnalysis ? (
+            ) : isAnalysisValid(aiAnalysis) ? (
               renderAnalysisResults()
             ) : (
               renderInputForm()

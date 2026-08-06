@@ -102,10 +102,26 @@ export async function POST(request: NextRequest) {
           .slice(0, 20) // Cap at 20 policies
       : [];
 
+    // ─── Sanity check — catch silent LLM failures ──
+    // If the LLM returned all-empty data, it's not a valid analysis
+    const summary = typeof parsed.summary === "string" ? parsed.summary : "";
+    if (matchedCategories.length === 0 && suggestedPolicies.length === 0 && !summary.trim()) {
+      return Response.json(
+        {
+          error: "The AI could not analyze your policies. Please try again or rephrase your input.",
+          matchedCategories: [],
+          systemPrompt: "",
+          summary: "",
+          suggestedPolicies: [],
+        },
+        { status: 422 }
+      );
+    }
+
     return Response.json({
       matchedCategories,
       systemPrompt: typeof parsed.systemPrompt === "string" ? parsed.systemPrompt : "",
-      summary: typeof parsed.summary === "string" ? parsed.summary : "",
+      summary,
       suggestedPolicies,
     });
   } catch (err) {

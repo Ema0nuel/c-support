@@ -31,7 +31,60 @@ function normalizeCategory(cat: string): string {
 
 function tokenizeCategory(cat: string): Set<string> {
   const normalized = normalizeCategory(cat);
-  return new Set(normalized.split(" ").filter((w) => w.length > 1));
+  return new Set(normalized.split(" ").filter((w) => w.length > 1).map(stemWord));
+}
+
+// ── Simple Stemmer ──────────────────────────────
+// Strips common English suffixes so "refunds" matches "refund",
+// "shipping" matches "ship", "cancellations" matches "cancel", etc.
+// This is a simplified Porter Stemmer — good enough for customer-support vocabulary.
+
+function stemWord(word: string): string {
+  if (word.length <= 3) return word;
+
+  // Order matters: try longer suffixes first
+  const rules: Array<[RegExp, string]> = [
+    [/izations?$/, "ize"],
+    [/fulness$/, "ful"],
+    [/ousness$/, "ous"],
+    [/iveness$/, "ive"],
+    [/ations?$/, "ate"],
+    [/ments?$/, "ment"],
+    [/nesses?$/, "ness"],
+    [/tings?$/, "t"],
+    [/lings?$/, "ling"],
+    [/tings?$/, "t"],
+    [/ies$/, "y"],
+    [/ves$/, "f"],
+    [/sses$/, "ss"],
+    [/ness$/, ""],
+    [/ment$/, ""],
+    [/able$/, ""],
+    [/ible$/, ""],
+    [/ical$/, ""],
+    [/ful$/, ""],
+    [/ous$/, ""],
+    [/ive$/, ""],
+    [/ing$/, ""],
+    [/tion$/, ""],
+    [/sion$/, ""],
+    [/ity$/, ""],
+    [/ies$/, "y"],
+    [/ed$/, ""],
+    [/er$/, ""],
+    [/ly$/, ""],
+    [/es$/, ""],
+    [/s$/, ""],
+  ];
+
+  for (const [pattern, replacement] of rules) {
+    if (pattern.test(word)) {
+      const result = word.replace(pattern, replacement);
+      // Don't stem down to fewer than 3 chars
+      if (result.length >= 3) return result;
+    }
+  }
+  return word;
 }
 
 function categorySimilarity(a: string, b: string): number {
