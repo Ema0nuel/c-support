@@ -138,6 +138,19 @@ export function deleteConversation(conversationId: string): boolean {
   return true;
 }
 
+export function updateConversationTitle(
+  conversationId: string,
+  title: string
+): boolean {
+  const data = readData();
+  const convo = data.conversations.find((c) => c.id === conversationId);
+  if (!convo) return false;
+  convo.title = title;
+  convo.updatedAt = Date.now();
+  writeData(data);
+  return true;
+}
+
 export function getConversationStats(): {
   totalConversations: number;
   totalMessages: number;
