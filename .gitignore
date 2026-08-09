@@ -60,3 +60,9 @@ BUILD-GUIDE.md*
 .superpowers/**
 DESIGN.md
 skills-lock.json
+
+# Training data (too large for Git — keep locally, download separately on new machine)
+policy/train.json
+policy/test.json
+policy/val.json
+policy/customer_support_training_dataset.json
