@@ -17,8 +17,9 @@ AI-powered customer support system with RAG-enhanced responses and business-adap
 | UI Primitives | Radix UI | Dialog, Dropdown, Label, Select |
 | Icons | Lucide React | Icon library |
 | Database | better-sqlite3 | Server-side SQLite (demo) |
-| AI Model | DeepSeek | Fine-tuned via LoRA/QLoRA |
-| RAG | pgvector + embeddings | Vector search for policy retrieval |
+| AI runtime | OpenRouter Free Models Router | Server-side Next.js API proxy |
+| Model reporting | OpenRouter response metadata | Resolved model ID returned by `/api/chat` |
+| RAG | Browser middleware context | Policy-aware prompt assembly |
 
 ## Quick Start
 
@@ -26,8 +27,15 @@ AI-powered customer support system with RAG-enhanced responses and business-adap
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev
+# Create .env with an OpenRouter key before starting
+# OPENROUTER_API_KEY=your_openrouter_key
+# LLM_API_BASE_URL=https://openrouter.ai/api/v1
+# LLM_MODEL=openrouter/free
+# OPENROUTER_HTTP_REFERER=http://localhost:3001
+# OPENROUTER_X_TITLE=C-Support
+
+# Start development server on port 3001
+npm run dev -- --port 3001
 
 # Build for production
 npm run build
@@ -60,7 +68,7 @@ c-support/
 
 ## Development Notes
 
-- **Dual-backend strategy:** Python FastAPI (thesis artifact) + Next.js API routes (working demo)
+- **Active runtime:** The panel uses Next.js API routes and OpenRouter. Python FastAPI remains an inactive thesis artifact.
 - **Design tokens:** Defined in `app/globals.css` via Tailwind v4 `@theme inline`
 - **Component pattern:** Radix primitives + CVA variants + Tailwind utilities + `cn()` class merging
 - **Font:** Geist Sans (UI) + Geist Mono (code) via `next/font/google`

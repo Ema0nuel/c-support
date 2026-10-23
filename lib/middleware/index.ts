@@ -11,7 +11,6 @@ export { buildContext } from "./context-builder";
 export { generateResponse } from "./response-generator";
 export { validateResponse, rewriteResponse } from "./output-validator";
 export { updateConversationState, createInitialState } from "./conversation-state";
-export { analyzePolicies } from "./onboarding-engine";
 
 // Re-export types
 export type {

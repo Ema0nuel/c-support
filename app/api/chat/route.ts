@@ -1,100 +1,88 @@
 import { NextRequest } from "next/server";
-import { callLLM, type Message } from "@/lib/chat";
-import { buildAgentSystemPrompt } from "@/lib/agent";
+import {
+  callLLMWithMetadata,
+  LLMServiceError,
+  type Message,
+} from "@/lib/chat";
 
 /**
- * Chat API — the working brain of the demo agent.
+ * Server-side OpenRouter proxy for the customer support panel.
  *
- * The frontend sends the conversation so far plus the agent's context
- * (business, agent, personality, scope, handoff). This route stitches a
- * system prompt from that context, appends the conversation, and calls
- * the LLM. Stateless per lib/chat.ts design — no DB writes here.
+ * The middleware builds the complete prompt before calling this route. The
+ * browser sends messages only; provider credentials remain on the server.
  */
-interface ChatContext {
-  businessName?: string;
-  businessNiche?: string;
-  agentName?: string;
-  personalityId?: string;
-  enabledCategories?: string[];
-  handoffMessage?: string;
-  baseSystemPrompt?: string;
-  policiesExcerpt?: string;
-}
+const MAX_MESSAGES = 24;
+const MAX_MESSAGE_LENGTH = 12_000;
+const MAX_TOTAL_LENGTH = 48_000;
+const VALID_ROLES = new Set<Message["role"]>(["system", "user", "assistant"]);
 
-interface ChatRequest {
-  messages: Message[];
-  context?: ChatContext;
+function validateMessages(value: unknown): value is Message[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_MESSAGES) {
+    return false;
+  }
+
+  let totalLength = 0;
+  for (const message of value) {
+    if (
+      !message ||
+      typeof message !== "object" ||
+      !("role" in message) ||
+      !("content" in message) ||
+      typeof message.role !== "string" ||
+      !VALID_ROLES.has(message.role as Message["role"]) ||
+      typeof message.content !== "string" ||
+      message.content.trim().length === 0 ||
+      message.content.length > MAX_MESSAGE_LENGTH
+    ) {
+      return false;
+    }
+
+    totalLength += message.content.length;
+    if (totalLength > MAX_TOTAL_LENGTH) return false;
+  }
+
+  return true;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body: ChatRequest = await request.json();
-    const { messages, context = {} } = body;
+    const body: unknown = await request.json();
+    const messages = body && typeof body === "object" && "messages" in body
+      ? body.messages
+      : undefined;
 
-    // ─── Validation ─────────────────────────────────
-    if (!Array.isArray(messages) || messages.length === 0) {
+    if (!validateMessages(messages)) {
       return Response.json(
-        { error: "Messages are required." },
-        { status: 400 }
+        { error: "A valid, bounded message list is required." },
+        { status: 400 },
       );
     }
 
-    if (
-      messages.some(
-        (m) =>
-          !m ||
-          typeof m.content !== "string" ||
-          !["system", "user", "assistant"].includes(m.role)
-      )
-    ) {
-      return Response.json(
-        { error: "Invalid message format." },
-        { status: 400 }
-      );
-    }
+    const completion = await callLLMWithMetadata(messages);
 
-    // Cap message history to keep requests bounded.
-    const history = messages.slice(-20);
-
-    // ─── Build the agent prompt ─────────────────────
-    const baseSystemPrompt = [
-      context.businessName?.trim() &&
-        `You are the support agent for ${context.businessName.trim()}.`,
-      context.businessNiche?.trim() &&
-        `Business niche: ${context.businessNiche.trim()}.`,
-      context.agentName?.trim() &&
-        `Your name is ${context.agentName.trim()} and customers address you by that name.`,
-      context.policiesExcerpt?.trim() &&
-        `Knowledge base summary: ${context.policiesExcerpt.trim()}`,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    const systemPrompt = buildAgentSystemPrompt({
-      baseSystemPrompt,
-      personalityId: context.personalityId || "professional",
-      enabledCategories: context.enabledCategories || [],
-      handoffMessage: context.handoffMessage || "",
+    return Response.json({
+      content: completion.content,
+      model_used: completion.model,
     });
-
-    const llmMessages: Message[] = [
-      { role: "system", content: systemPrompt },
-      ...history.filter((m) => m.role !== "system"),
-    ];
-
-    // ─── Call the LLM ───────────────────────────────
-    const content = await callLLM(llmMessages);
-
-    return Response.json({ content });
   } catch (err) {
+    console.error("[chat] error:", err instanceof Error ? err.message : String(err));
+
+    if (err instanceof SyntaxError) {
+      return Response.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    if (err instanceof LLMServiceError) {
+      const error = err.status === 503
+        ? "AI service is not configured."
+        : err.status === 504
+          ? "AI service timed out. Please try again."
+          : "AI service is temporarily unavailable.";
+      return Response.json({ error }, { status: err.status });
+    }
+
     return Response.json(
-      {
-        error:
-          err instanceof Error
-            ? err.message
-            : "An unexpected error occurred while generating a response.",
-      },
-      { status: 500 }
+      { error: "An unexpected error occurred while generating a response." },
+      { status: 500 },
     );
   }
 }

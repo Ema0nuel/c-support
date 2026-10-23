@@ -2,14 +2,13 @@
  * C-Support — Response Generator (Stage 4)
  *
  * Generates responses using:
- * 1. LLM (primary) — calls OpenCode-Zen API
+ * 1. LLM (primary) — calls the server-side OpenRouter proxy
  * 2. Template engine (fallback) — uses response-engine.ts templates
  *
  * The LLM is the primary generator. Templates are only used
  * when the LLM is unavailable (no API key, timeout, error).
  */
 
-import { callLLM, type Message } from "@/lib/chat";
 import { generateResponse as templateGenerate, type PersonalityId } from "@/lib/response-engine";
 import type { Intent } from "@/lib/intent-classifier";
 import type {
@@ -65,13 +64,29 @@ async function generateWithLLM(
   personalityId: string
 ): Promise<string | null> {
   try {
-    const response = await callLLM(context.messages as Message[]);
-    if (!response || response.trim().length === 0) return null;
+    const apiResponse = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: context.messages }),
+    });
 
-    // Apply personality adjustments
-    return applyPersonality(response, personalityId);
+    if (!apiResponse.ok) {
+      console.warn(`[response-generator] OpenRouter unavailable (HTTP ${apiResponse.status}); using template fallback.`);
+      return null;
+    }
+
+    const data = await apiResponse.json() as {
+      content?: unknown;
+      model_used?: unknown;
+    };
+    if (typeof data.content !== "string" || data.content.trim().length === 0) {
+      console.warn("[response-generator] OpenRouter returned no content; using template fallback.");
+      return null;
+    }
+
+    return applyPersonality(data.content, personalityId);
   } catch {
-    // LLM failed — return null to trigger fallback
+    console.warn("[response-generator] OpenRouter request failed; using template fallback.");
     return null;
   }
 }
